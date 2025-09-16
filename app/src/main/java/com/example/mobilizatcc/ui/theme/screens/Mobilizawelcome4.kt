@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.mobilizatcc.R
 
 @Composable
-fun OnboardingScreen1(
+fun OnboardingScreen3(
     onNextClick: () -> Unit = {},
     onSkipClick: () -> Unit = {}
 ) {
@@ -42,25 +42,26 @@ fun OnboardingScreen1(
 
             // Imagem central
             Image(
-                painter = painterResource(id = R.drawable.route), // substitua com o nome correto da imagem
-                contentDescription = "Imagem de rota",
+                painter = painterResource(id = R.drawable.homens), // Substitua com o nome correto
+                contentDescription = "Imagem de passageiros conversando",
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
+                    .fillMaxWidth(0.7f)
                     .height(240.dp)
             )
 
             // Textos
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Encontre sua melhor rota",
+                    text = "Converse com outros passageiros",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color(0xFF202020)
+                    color = Color(0xFF202020),
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Planeje seus trajetos utilizando o transporte público de forma rápida e prática.",
+                    text = "Compartilhe informações e receba dicas sobre sua linha.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     textAlign = TextAlign.Center
@@ -77,24 +78,33 @@ fun OnboardingScreen1(
                     Text(text = "Pular", color = Color.Gray)
                 }
 
-                // Indicadores
+                // Indicadores de progresso (terceira bolinha ativa)
                 Row(horizontalArrangement = Arrangement.Center) {
-                    Box(
-                        modifier = Modifier
-                            .size(width = 20.dp, height = 6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(greenColor)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    repeat(3) {
+                    repeat(2) {
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
                                 .clip(CircleShape)
                                 .background(Color.LightGray)
                         )
-                        if (it != 2) Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                     }
+
+                    Box(
+                        modifier = Modifier
+                            .size(width = 20.dp, height = 6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(greenColor)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(Color.LightGray)
+                    )
                 }
 
                 // Botão circular de próxima tela
@@ -117,6 +127,6 @@ fun OnboardingScreen1(
 
 @Preview(showBackground = true)
 @Composable
-fun OnboardingScreen1Preview() {
-    OnboardingScreen1()
+fun OnboardingScreen3Preview() {
+    OnboardingScreen3()
 }

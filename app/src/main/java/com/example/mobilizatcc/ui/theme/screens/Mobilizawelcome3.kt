@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.mobilizatcc.R
 
 @Composable
-fun OnboardingScreen1(
+fun OnboardingScreen2(
     onNextClick: () -> Unit = {},
     onSkipClick: () -> Unit = {}
 ) {
@@ -42,25 +42,26 @@ fun OnboardingScreen1(
 
             // Imagem central
             Image(
-                painter = painterResource(id = R.drawable.route), // substitua com o nome correto da imagem
-                contentDescription = "Imagem de rota",
+                painter = painterResource(id = R.drawable.relogio), // Altere para o ID correto da imagem
+                contentDescription = "Imagem de relógio",
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
+                    .fillMaxWidth(0.6f)
                     .height(240.dp)
             )
 
             // Textos
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Encontre sua melhor rota",
+                    text = "Saiba quando seu transporte chega",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color(0xFF202020)
+                    color = Color(0xFF202020),
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Planeje seus trajetos utilizando o transporte público de forma rápida e prática.",
+                    text = "Confira os horários do seu transporte.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     textAlign = TextAlign.Center
@@ -79,21 +80,33 @@ fun OnboardingScreen1(
 
                 // Indicadores
                 Row(horizontalArrangement = Arrangement.Center) {
-                    Box(
-                        modifier = Modifier
-                            .size(width = 20.dp, height = 6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(greenColor)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    repeat(3) {
+                    repeat(1) {
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
                                 .clip(CircleShape)
                                 .background(Color.LightGray)
                         )
-                        if (it != 2) Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(width = 20.dp, height = 6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(greenColor)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    repeat(2) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(Color.LightGray)
+                        )
+                        if (it != 1) Spacer(modifier = Modifier.width(6.dp))
                     }
                 }
 
@@ -117,6 +130,6 @@ fun OnboardingScreen1(
 
 @Preview(showBackground = true)
 @Composable
-fun OnboardingScreen1Preview() {
-    OnboardingScreen1()
+fun OnboardingScreen2Preview() {
+    OnboardingScreen2()
 }
