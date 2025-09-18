@@ -61,10 +61,9 @@ fun LoginScreen(
                 painter = painterResource(id = R.drawable.logo_claro),
                 contentDescription = "Logo Mobiliza",
                 modifier = Modifier
-                    .height(100.dp)
+                    .height(150.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Bem-vindo ao Mobiliza!",
@@ -73,7 +72,6 @@ fun LoginScreen(
                 color = Color.Black
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 text = "Entre com seu email para acessar sua conta",
@@ -179,12 +177,10 @@ fun LoginScreen(
 
             // Link para registro
             Row(horizontalArrangement = Arrangement.Center) {
-                Text(
-                    text = "Não possui uma conta? ",
-                    color = Color.Gray
-                )
-                TextButton(onClick = onRegisterClick) {
+                TextButton(onClick = onLoginClick) {
+                    Text("Não possui uma conta?", color = Color.Gray)
                     Text("Registre-se", color = greenColor)
+
                 }
             }
 

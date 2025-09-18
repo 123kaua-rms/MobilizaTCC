@@ -52,26 +52,32 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             // Logo
             Image(
                 painter = painterResource(id = R.drawable.logo_claro), // substitua pelo nome certo do seu drawable
                 contentDescription = "Logo Mobiliza",
                 modifier = Modifier
-                    .height(100.dp)
+                    .height(190.dp)
                     .fillMaxWidth(),
                 alignment = Alignment.Center
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Row {   Text(
 
-            Text(
-                text = "Bem-vindo ao Mobiliza!",
+                text = "Bem-vindo ao ",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+                Text(
+                    text = "Mobiliza!",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = greenColor
+                ) }
+
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Faça seu cadastro para ter acesso sua conta",
@@ -88,10 +94,17 @@ fun RegisterScreen(
                 onValueChange = { nome = it },
                 label = { Text("Nome completo") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Person, contentDescription = "Nome")
+                    Icon(
+                        painter = painterResource(id = R.drawable.userr), // coloque o ícone do google no drawable
+                        contentDescription = "Google",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
+
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -100,7 +113,13 @@ fun RegisterScreen(
                 onValueChange = { usuario = it },
                 label = { Text("Nome de usuário") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Person, contentDescription = "Usuário")
+                    Icon(
+                        painter = painterResource(id = R.drawable.userr), // coloque o ícone do google no drawable
+                        contentDescription = "Google",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
+
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -112,7 +131,13 @@ fun RegisterScreen(
                 onValueChange = { email = it },
                 label = { Text("Email") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Email, contentDescription = "Email")
+                    Icon(
+                        painter = painterResource(id = R.drawable.pastra), // coloque o ícone do google no drawable
+                        contentDescription = "Google",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
+
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -125,7 +150,13 @@ fun RegisterScreen(
                 label = { Text("Senha") },
                 visualTransformation = PasswordVisualTransformation(),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Senha")
+                    Icon(
+                        painter = painterResource(id = R.drawable.cadidi), // coloque o ícone do google no drawable
+                        contentDescription = "Google",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
+
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -166,7 +197,9 @@ fun RegisterScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.google), // coloque o ícone do google no drawable
                     contentDescription = "Google",
-                    tint = Color.Unspecified
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(24.dp)
+
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Logue com Google", color = Color.Black)
@@ -175,8 +208,11 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             TextButton(onClick = onLoginClick) {
-                Text("Já possui uma conta? Entrar", color = greenColor)
+                Text("Já possui uma conta?", color = Color.Gray)
+                Text("Entrar", color = greenColor)
+
             }
+
         }
     }
 }

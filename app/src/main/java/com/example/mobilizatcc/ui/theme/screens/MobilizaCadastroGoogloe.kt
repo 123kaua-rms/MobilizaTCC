@@ -88,7 +88,7 @@ fun FinalRegisterScreen(
                 label = { Text("Nome de usuário") },
                 placeholder = { Text("Digite seu nome de usuário") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Person, contentDescription = "Usuário")
+                    Icon(imageVector = Icons.Default.Person, contentDescription = "Usuário", tint = Color(0xFF16A34A))
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -103,7 +103,7 @@ fun FinalRegisterScreen(
                 placeholder = { Text("Digite sua senha") },
                 visualTransformation = PasswordVisualTransformation(),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Senha")
+                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Senha", tint = Color(0xFF16A34A))
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -162,12 +162,10 @@ fun FinalRegisterScreen(
 
             // Link para login
             Row {
-                Text(
-                    text = "Já possui uma conta? ",
-                    color = Color.Gray
-                )
                 TextButton(onClick = onLoginClick) {
-                    Text(text = "Entrar", color = greenColor)
+                    Text("Já possui uma conta?", color = Color.Gray)
+                    Text("Entrar", color = greenColor)
+
                 }
             }
 
