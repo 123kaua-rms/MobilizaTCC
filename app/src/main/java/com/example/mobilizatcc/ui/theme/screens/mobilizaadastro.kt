@@ -1,40 +1,38 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.mobilizatcc.R
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.runtime.*
-
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavHostController
+import com.example.mobilizatcc.R
+import com.example.mobilizatcc.model.Cliente
+import com.example.mobilizatcc.service.RetrofitFactory
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
-fun RegisterScreen(
-    onRegisterClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {}
+fun mobilizaCadastroScreen(navegacao: NavHostController?,
+                           onRegisterClick: () -> Unit = {},
+                           onGoogleClick: () -> Unit = {},
+                           onLoginClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
+    val context = LocalContext.current
 
     var nome by remember { mutableStateOf("") }
     var usuario by remember { mutableStateOf("") }
@@ -56,7 +54,7 @@ fun RegisterScreen(
 
             // Logo
             Image(
-                painter = painterResource(id = R.drawable.logo_claro), // substitua pelo nome certo do seu drawable
+                painter = painterResource(id = R.drawable.logo_claro),
                 contentDescription = "Logo Mobiliza",
                 modifier = Modifier
                     .height(190.dp)
@@ -64,23 +62,24 @@ fun RegisterScreen(
                 alignment = Alignment.Center
             )
 
-            Row {   Text(
-
-                text = "Bem-vindo ao ",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Row {
+                Text(
+                    text = "Bem-vindo ao ",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
                 Text(
                     text = "Mobiliza!",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = greenColor
-                ) }
+                )
+            }
 
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Faça seu cadastro para ter acesso sua conta",
+                text = "Faça seu cadastro para ter acesso à sua conta",
                 fontSize = 14.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center
@@ -88,84 +87,74 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Campos de entrada
+            // Nome
             OutlinedTextField(
                 value = nome,
                 onValueChange = { nome = it },
                 label = { Text("Nome completo") },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.userr), // coloque o ícone do google no drawable
-                        contentDescription = "Google",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(24.dp)
-
-                    )
-                },
                 modifier = Modifier.fillMaxWidth()
             )
 
-
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Usuário
             OutlinedTextField(
                 value = usuario,
                 onValueChange = { usuario = it },
                 label = { Text("Nome de usuário") },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.userr), // coloque o ícone do google no drawable
-                        contentDescription = "Google",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(24.dp)
-
-                    )
-                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Email
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.pastra), // coloque o ícone do google no drawable
-                        contentDescription = "Google",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(24.dp)
-
-                    )
-                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Senha
             OutlinedTextField(
                 value = senha,
                 onValueChange = { senha = it },
                 label = { Text("Senha") },
                 visualTransformation = PasswordVisualTransformation(),
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.cadidi), // coloque o ícone do google no drawable
-                        contentDescription = "Google",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(24.dp)
-
-                    )
-                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Botão cadastrar
+            // Botão cadastrar (chama API)
             Button(
-                onClick = onRegisterClick,
+                onClick = {
+                    val cliente = Cliente(
+                        nome = nome,
+                        usuario = usuario,
+                        email = email,
+                        senha = senha
+                    )
+
+                    val call = RetrofitFactory().getClienteService().cadastrar(cliente)
+
+                    call.enqueue(object : Callback<Cliente> {
+                        override fun onResponse(call: Call<Cliente>, response: Response<Cliente>) {
+                            if (response.isSuccessful) {
+                                Toast.makeText(context, "Cadastro realizado!", Toast.LENGTH_SHORT).show()
+                                onRegisterClick()
+                            } else {
+                                Toast.makeText(context, "Erro: ${response.code()}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<Cliente>, t: Throwable) {
+                            Toast.makeText(context, "Falha: ${t.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -186,7 +175,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Botão Google
+            // Botão Google (placeholder)
             OutlinedButton(
                 onClick = onGoogleClick,
                 modifier = Modifier
@@ -195,11 +184,10 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.google), // coloque o ícone do google no drawable
+                    painter = painterResource(id = R.drawable.google),
                     contentDescription = "Google",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(24.dp)
-
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Logue com Google", color = Color.Black)
@@ -210,15 +198,13 @@ fun RegisterScreen(
             TextButton(onClick = onLoginClick) {
                 Text("Já possui uma conta?", color = Color.Gray)
                 Text("Entrar", color = greenColor)
-
             }
-
         }
     }
 }
-
-@Preview(showBackground = true)
+@Preview(showSystemUi = true, showBackground = true)
 @Composable
-fun RegisterScreenPreview() {
-    RegisterScreen()
+fun mobilizaCadastroScreenPreview() {
+    mobilizaCadastroScreen(navegacao = null)
 }
+

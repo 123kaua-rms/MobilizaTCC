@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitFactory {
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:3000/") // muda para seu servidor/porta
+        .baseUrl("http://10.107.144.14:8080/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
