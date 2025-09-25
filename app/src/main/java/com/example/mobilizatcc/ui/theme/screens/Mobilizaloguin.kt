@@ -17,40 +17,40 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.model.LoginRequest
+import com.example.mobilizatcc.service.RetrofitFactory
+import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(navegacao: NavHostController?,
-                onLoginClick: () -> Unit = {},
-                onGoogleClick: () -> Unit = {},
-                onForgotPasswordClick: () -> Unit = {},
-                onRegisterClick: () -> Unit = {}
+fun LoginScreen(
+    navegacao: NavHostController?,
+    onForgotPasswordClick: () -> Unit = {},
+    onGoogleClick: () -> Unit = {},
+    onRegisterClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
 
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Canto verde topo esquerdo
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Cantos verdes
             Box(
                 modifier = Modifier
                     .size(width = 105.dp, height = 25.dp)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
             )
-
-            // Canto verde inferior direito
             Box(
                 modifier = Modifier
                     .size(width = 105.dp, height = 25.dp)
@@ -75,7 +75,6 @@ fun LoginScreen(navegacao: NavHostController?,
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Título com "Mobiliza" verde
                 Text(
                     text = buildAnnotatedString {
                         append("Bem-vindo ao ")
@@ -98,7 +97,7 @@ fun LoginScreen(navegacao: NavHostController?,
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Campo email
+                // Campo Email
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -106,7 +105,7 @@ fun LoginScreen(navegacao: NavHostController?,
                     placeholder = { Text("Digite seu email") },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.fontisto_email), // seu ícone de email
+                            painter = painterResource(id = R.drawable.fontisto_email),
                             contentDescription = "Email",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(20.dp)
@@ -117,7 +116,7 @@ fun LoginScreen(navegacao: NavHostController?,
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Campo senha + link "Esqueceu sua senha?"
+                // Campo Senha
                 Column(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = senha,
@@ -127,7 +126,7 @@ fun LoginScreen(navegacao: NavHostController?,
                         visualTransformation = PasswordVisualTransformation(),
                         leadingIcon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.lock), // seu ícone de senha
+                                painter = painterResource(id = R.drawable.lock),
                                 contentDescription = "Senha",
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(20.dp)
@@ -153,9 +152,27 @@ fun LoginScreen(navegacao: NavHostController?,
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Botão login
+                // 🔹 BOTÃO LOGIN (com RetrofitFactory)
                 Button(
-                    onClick = onLoginClick,
+                    onClick = {
+                        scope.launch {
+                            try {
+                                val authService = RetrofitFactory().getAuthService()
+                                val response = authService.login(LoginRequest(email, senha))
+
+                                if (response.token.isNotEmpty()) {
+                                    // Login OK → navega para Home
+                                    navegacao?.navigate("home") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                } else {
+                                    errorMessage = "Erro no login"
+                                }
+                            } catch (e: Exception) {
+                                errorMessage = "Usuário ou senha inválidos"
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -163,6 +180,12 @@ fun LoginScreen(navegacao: NavHostController?,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Login", color = Color.White)
+                }
+
+                // Mensagem de erro
+                errorMessage?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(it, color = Color.Red, fontSize = 14.sp)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -173,17 +196,13 @@ fun LoginScreen(navegacao: NavHostController?,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
-                    Text(
-                        text = " OU ",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
+                    Text(text = " OU ", color = Color.Gray, fontSize = 14.sp)
                     Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Google login button
+                // Botão Google
                 OutlinedButton(
                     onClick = onGoogleClick,
                     modifier = Modifier
@@ -203,7 +222,7 @@ fun LoginScreen(navegacao: NavHostController?,
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Link para registro
+                // Link cadastro
                 TextButton(onClick = onRegisterClick) {
                     Text("Não possui uma conta?", color = Color.Gray)
                     Text("Cadastrar", color = greenColor)
@@ -211,10 +230,4 @@ fun LoginScreen(navegacao: NavHostController?,
             }
         }
     }
-}
-
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    LoginScreen(navegacao = null)
 }

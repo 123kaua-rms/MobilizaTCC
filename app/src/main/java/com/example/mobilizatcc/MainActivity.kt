@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
                 val navegacao = rememberNavController()
                 NavHost(
                     navController = navegacao,
-                    startDestination = "home"
+                    startDestination = "loguin"
                 ) {
                     composable(route = "cadastro") {
                         RegisterScreen(navegacao)
