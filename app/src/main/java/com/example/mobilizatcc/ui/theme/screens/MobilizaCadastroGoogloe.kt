@@ -16,13 +16,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
 
 @Composable
-fun FinalRegisterScreen(
-    onRegisterClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {}
+fun FinalRegisterScreen(navegacao: NavHostController?,
+                        onRegisterClick: () -> Unit = {},
+                        onGoogleClick: () -> Unit = {},
+                        onLoginClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
 
@@ -185,8 +186,8 @@ fun FinalRegisterScreen(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun FinalRegisterScreenPreview() {
-    FinalRegisterScreen()
+    FinalRegisterScreen(navegacao = null)
 }

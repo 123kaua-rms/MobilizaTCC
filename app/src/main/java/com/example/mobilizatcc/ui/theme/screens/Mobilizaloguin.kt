@@ -20,14 +20,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
 
 @Composable
-fun LoginScreen(
-    onLoginClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
-    onRegisterClick: () -> Unit = {}
+fun LoginScreen(navegacao: NavHostController?,
+                onLoginClick: () -> Unit = {},
+                onGoogleClick: () -> Unit = {},
+                onForgotPasswordClick: () -> Unit = {},
+                onRegisterClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
 
@@ -212,8 +213,8 @@ fun LoginScreen(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen(navegacao = null)
 }
