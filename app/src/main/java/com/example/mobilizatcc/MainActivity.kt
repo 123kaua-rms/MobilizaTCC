@@ -1,4 +1,5 @@
-package br.senai.sp.jandira.projeto_travello
+package br.senai.sp.jandira.mobilizatcc
+
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,7 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.ui.theme.MobilizaTCCTheme
 import com.example.mobilizatcc.ui.theme.screens.FinalRegisterScreen
-import com.example.mobilizatcc.ui.theme.screens.LoginScreen
+//import com.example.mobilizatcc.ui.theme.screens.LoginScreen
 import com.example.mobilizatcc.ui.theme.screens.RegisterScreen
 
 
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
                 val navegacao = rememberNavController()
                 NavHost(
                     navController = navegacao,
-                    startDestination = "loguin"
+                    startDestination = "cadastro" +
+                            ""
                 ) {
                     composable(route = "cadastro") {
                         RegisterScreen(navegacao)
@@ -28,9 +30,9 @@ class MainActivity : ComponentActivity() {
                     composable(route = "cadastro-google") {
                         FinalRegisterScreen(navegacao)
                     }
-                    composable(route = "loguin") {
-                        LoginScreen(navegacao)
-                    }
+//                    composable(route = "loguin") {
+//                        LoginScreen(navegacao)
+//                    }
 
                 }
             }

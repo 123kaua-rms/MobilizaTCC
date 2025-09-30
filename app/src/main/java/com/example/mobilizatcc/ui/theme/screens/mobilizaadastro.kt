@@ -1,5 +1,7 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -19,24 +22,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.model.UsuarioRequest
+import com.example.mobilizatcc.model.UsuarioResponse
+import com.example.mobilizatcc.service.RetrofitFactory
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
-fun RegisterScreen(navegacao: NavHostController?,
-                   onRegisterClick: () -> Unit = {},
-                   onGoogleClick: () -> Unit = {},
-                   onLoginClick: () -> Unit = {}
+fun RegisterScreen(
+    navegacao: NavHostController? = null,
+    onRegisterClick: () -> Unit = {},
+    onGoogleClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
+    val context = LocalContext.current
 
     var nome by remember { mutableStateOf("") }
     var usuario by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
 
+    var toastShown by remember { mutableStateOf(false) }
+
     Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -57,7 +68,6 @@ fun RegisterScreen(navegacao: NavHostController?,
                     .align(Alignment.BottomEnd)
             )
 
-            // Conteúdo principal
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -68,7 +78,6 @@ fun RegisterScreen(navegacao: NavHostController?,
 
                 Spacer(modifier = Modifier.height(129.dp))
 
-                // Título com "Mobiliza" verde
                 Text(
                     text = buildAnnotatedString {
                         append("Bem-vindo ao ")
@@ -91,81 +100,86 @@ fun RegisterScreen(navegacao: NavHostController?,
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Nome completo
+                // Campos de input
                 OutlinedTextField(
                     value = nome,
                     onValueChange = { nome = it },
                     label = { Text("Nome completo") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.user),
-                            contentDescription = "Nome",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.user), contentDescription = "Nome", tint = Color.Unspecified, modifier = Modifier.size(20.dp)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Nome de usuário
                 OutlinedTextField(
                     value = usuario,
                     onValueChange = { usuario = it },
                     label = { Text("Nome de usuário") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.user),
-                            contentDescription = "Usuário",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.user), contentDescription = "Usuário", tint = Color.Unspecified, modifier = Modifier.size(20.dp)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Email
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.fontisto_email),
-                            contentDescription = "Email",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.fontisto_email), contentDescription = "Email", tint = Color.Unspecified, modifier = Modifier.size(20.dp)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Senha
                 OutlinedTextField(
                     value = senha,
                     onValueChange = { senha = it },
                     label = { Text("Senha") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.lock),
-                            contentDescription = "Senha",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
+                    leadingIcon = { Icon(painter = painterResource(id = R.drawable.lock), contentDescription = "Senha", tint = Color.Unspecified, modifier = Modifier.size(20.dp)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(25.dp))
 
-                // Botão cadastrar
+                // Botão Cadastrar
                 Button(
-                    onClick = onRegisterClick,
+                    onClick = {
+                        if (!toastShown) {
+                            toastShown = true
+                            val usuarioService = RetrofitFactory().getUsuarioService()
+                            val usuarioRequest = UsuarioRequest(
+                                foto = "foto_legal.png",
+                                nome = nome,
+                                username = usuario,
+                                email = email,
+                                senha = senha
+                            )
+
+                            // Log do JSON que será enviado
+                            Log.d("RegisterScreen", "JSON enviado: $usuarioRequest")
+
+                            usuarioService.registerUser(usuarioRequest)
+                                .enqueue(object : Callback<UsuarioResponse> {
+                                    override fun onResponse(call: Call<UsuarioResponse>, response: Response<UsuarioResponse>) {
+                                        Log.d("RegisterScreen", "Código HTTP: ${response.code()}")
+                                        Log.d("RegisterScreen", "Body da resposta: ${response.body()}")
+
+                                        if (!response.isSuccessful) {
+                                            val errorBody = response.errorBody()?.string()
+                                            Log.e("RegisterScreen", "Erro do servidor: $errorBody")
+                                            Toast.makeText(context, "Erro: ${response.code()}", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
+                                            onRegisterClick()
+                                        }
+                                        toastShown = false
+                                    }
+
+                                    override fun onFailure(call: Call<UsuarioResponse>, t: Throwable) {
+                                        Log.e("RegisterScreen", "Falha na requisição", t)
+                                        Toast.makeText(context, "Falha: ${t.message}", Toast.LENGTH_SHORT).show()
+                                        toastShown = false
+                                    }
+                                })
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -182,17 +196,13 @@ fun RegisterScreen(navegacao: NavHostController?,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
-                    Text(
-                        text = " OU ",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
+                    Text(" OU ", color = Color.Gray, fontSize = 14.sp)
                     Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
                 }
 
                 Spacer(modifier = Modifier.height(22.dp))
 
-                // Google login button
+                // Google login
                 OutlinedButton(
                     onClick = onGoogleClick,
                     modifier = Modifier
@@ -200,12 +210,7 @@ fun RegisterScreen(navegacao: NavHostController?,
                         .height(48.dp),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.google),
-                        contentDescription = "Google",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Icon(painter = painterResource(id = R.drawable.google), contentDescription = "Google", tint = Color.Unspecified, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Logue com Google", color = Color.Black)
                 }
@@ -213,7 +218,7 @@ fun RegisterScreen(navegacao: NavHostController?,
                 Spacer(modifier = Modifier.height(10.dp))
 
                 TextButton(onClick = onLoginClick) {
-                    Text("Já possui uma conta?", color = Color.Gray)
+                    Text("Já possui uma conta? ", color = Color.Gray)
                     Text("Entrar", color = greenColor)
                 }
             }
