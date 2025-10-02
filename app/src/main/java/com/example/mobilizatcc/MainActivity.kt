@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.ui.theme.MobilizaTCCTheme
 import com.example.mobilizatcc.ui.theme.screens.FinalRegisterScreen
+import com.example.mobilizatcc.ui.theme.screens.LoginScreen
 //import com.example.mobilizatcc.ui.theme.screens.LoginScreen
 import com.example.mobilizatcc.ui.theme.screens.RegisterScreen
 
@@ -21,8 +22,8 @@ class MainActivity : ComponentActivity() {
                 val navegacao = rememberNavController()
                 NavHost(
                     navController = navegacao,
-                    startDestination = "cadastro" +
-                            ""
+                    startDestination = "loguin"
+
                 ) {
                     composable(route = "cadastro") {
                         RegisterScreen(navegacao)
@@ -30,9 +31,9 @@ class MainActivity : ComponentActivity() {
                     composable(route = "cadastro-google") {
                         FinalRegisterScreen(navegacao)
                     }
-//                    composable(route = "loguin") {
-//                        LoginScreen(navegacao)
-//                    }
+                    composable(route = "loguin") {
+                        LoginScreen(navegacao)
+                    }
 
                 }
             }

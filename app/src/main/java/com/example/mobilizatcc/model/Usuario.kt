@@ -9,6 +9,10 @@ data class UsuarioRequest(
 )
 
 data class UsuarioResponse(
-    val message: String,
-    val usuario: UsuarioRequest
+    val id: Int,
+    val foto: String,
+    val nome: String,
+    val username: String,
+    val email: String,
+    val senha: String
 )

@@ -167,7 +167,11 @@ fun RegisterScreen(
                                             Toast.makeText(context, "Erro: ${response.code()}", Toast.LENGTH_SHORT).show()
                                         } else {
                                             Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
-                                            onRegisterClick()
+
+                                            // 👉 Vai para login
+                                            navegacao?.navigate("loguin") {
+                                                popUpTo("register") { inclusive = true }
+                                            }
                                         }
                                         toastShown = false
                                     }
@@ -188,6 +192,8 @@ fun RegisterScreen(
                 ) {
                     Text("Cadastrar", color = Color.White)
                 }
+
+
 
                 Spacer(modifier = Modifier.height(26.dp))
 
