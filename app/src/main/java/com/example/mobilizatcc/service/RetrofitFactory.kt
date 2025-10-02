@@ -6,7 +6,7 @@
 
     class RetrofitFactory {
         private val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.107.134.9:8080/") // seu backend
+            .baseUrl("http://10.107.140.14:8080/v1/mobiliza/") // seu backend
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 

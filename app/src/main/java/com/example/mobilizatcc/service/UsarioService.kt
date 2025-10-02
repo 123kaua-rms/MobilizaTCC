@@ -7,6 +7,6 @@ import retrofit2.http.POST
 
 interface UsuarioService {
     @Headers("Content-Type: application/json")
-    @POST("usuarios") // coloque o endpoint certo do seu backend
+    @POST("usuario") // coloque o endpoint certo do seu backend
     fun registerUser(@Body usuario: UsuarioRequest): Call<UsuarioResponse>
 }
