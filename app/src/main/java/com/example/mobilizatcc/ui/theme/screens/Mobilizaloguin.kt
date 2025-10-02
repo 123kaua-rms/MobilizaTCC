@@ -25,8 +25,8 @@ import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.LoginRequest
 import com.example.mobilizatcc.model.UsuarioResponse
 import com.example.mobilizatcc.service.RetrofitFactory
-import kotlinx.coroutines.launch
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
@@ -41,14 +41,13 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Cantos verdes
+            // Cantos verdes decorativos
             Box(
                 modifier = Modifier
                     .size(width = 105.dp, height = 25.dp)
@@ -159,43 +158,33 @@ fun LoginScreen(
                 // Botão LOGIN
                 Button(
                     onClick = {
-                        scope.launch {
-                            try {
-                                val authService = RetrofitFactory().getAuthService()
-                                val call = authService.login(LoginRequest(email, senha))
+                        val usuarioService = RetrofitFactory().getUsuarioService()
+                        val call = usuarioService.loguinUser(LoginRequest(email = email, senha = senha))
 
-                                call.enqueue(object : retrofit2.Callback<LoguinResponse> {
-                                    override fun onResponse(
-                                        call: Call<LoguinResponse>,
-                                        response: Response<LoguinResponse>
-                                    ) {
-                                        if (response.isSuccessful) {
-                                            val body = response.body()
-                                            if (body != null && body.status && body.token != null) {
-                                                // Login OK → usuario cadastrado retornado
-                                                val usuarioLogado: UsuarioResponse? = body.usuario
-
-                                                // Você pode salvar usuarioLogado em um singleton ou ViewModel se quiser
-
-                                                navegacao?.navigate("home") {
-                                                    popUpTo("login") { inclusive = true }
-                                                }
-                                            } else {
-                                                errorMessage = "Email ou senha inválidos"
-                                            }
-                                        } else {
-                                            errorMessage = "Erro: ${response.code()}"
+                        call.enqueue(object : Callback<LoguinResponse> {
+                            override fun onResponse(
+                                call: Call<LoguinResponse>,
+                                response: Response<LoguinResponse>
+                            ) {
+                                if (response.isSuccessful) {
+                                    val body = response.body()
+                                    if (body != null && body.status && body.usuario != null) {
+                                        // Usuário logado com sucesso
+                                        navegacao?.navigate("home") {
+                                            popUpTo("login") { inclusive = true }
                                         }
+                                    } else {
+                                        errorMessage = "Email ou senha inválidos"
                                     }
-
-                                    override fun onFailure(call: Call<LoguinResponse>, t: Throwable) {
-                                        errorMessage = "Falha na conexão: ${t.message}"
-                                    }
-                                })
-                            } catch (e: Exception) {
-                                errorMessage = "Erro inesperado: ${e.message}"
+                                } else {
+                                    errorMessage = "Erro: ${response.code()}"
+                                }
                             }
-                        }
+
+                            override fun onFailure(call: Call<LoguinResponse>, t: Throwable) {
+                                errorMessage = "Falha na conexão: ${t.message}"
+                            }
+                        })
                     },
                     modifier = Modifier
                         .fillMaxWidth()

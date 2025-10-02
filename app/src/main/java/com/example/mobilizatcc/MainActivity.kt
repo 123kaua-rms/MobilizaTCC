@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.ui.theme.MobilizaTCCTheme
 import com.example.mobilizatcc.ui.theme.screens.FinalRegisterScreen
 import com.example.mobilizatcc.ui.theme.screens.LoginScreen
+import com.example.mobilizatcc.ui.theme.screens.MobilizaHomeScreen
 //import com.example.mobilizatcc.ui.theme.screens.LoginScreen
 import com.example.mobilizatcc.ui.theme.screens.RegisterScreen
 
@@ -33,6 +34,9 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(route = "loguin") {
                         LoginScreen(navegacao)
+                    }
+                    composable(route = "home") {
+                        MobilizaHomeScreen(navegacao)
                     }
 
                 }

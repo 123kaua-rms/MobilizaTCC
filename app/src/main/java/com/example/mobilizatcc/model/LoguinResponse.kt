@@ -6,3 +6,4 @@ data class LoguinResponse(
     val token: String?,
     val usuario: UsuarioResponse? // retorna o mesmo objeto que cadastramos
 )
+

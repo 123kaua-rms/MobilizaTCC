@@ -11,4 +11,11 @@ interface UsuarioService {
     @Headers("Content-Type: application/json")
     @POST("usuario") // coloque o endpoint certo do seu backend
     fun registerUser(@Body usuario: UsuarioRequest): Call<UsuarioResponse>
+
+
+
+    @POST("usuario/login") // ajuste para a rota exata do seu backend
+    @Headers("Content-Type: application/json")
+    fun loguinUser(@Body request: LoginRequest): Call<LoguinResponse>
+
 }
