@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -28,13 +29,14 @@ import com.example.mobilizatcc.service.RetrofitFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 @Composable
 fun RegisterScreen(
     navegacao: NavHostController? = null,
     onRegisterClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {}
+    onGoogleClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
     val context = LocalContext.current
@@ -55,17 +57,19 @@ fun RegisterScreen(
             // Canto verde topo ESQUERDO
             Box(
                 modifier = Modifier
-                    .size(width = 105.dp, height = 25.dp)
+                    .size(width = 125.dp, height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
+                    .statusBarsPadding()
             )
 
             // Canto verde inferior DIREITO
             Box(
                 modifier = Modifier
-                    .size(width = 105.dp, height = 25.dp)
+                    .size(width = 125.dp, height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(topStart = 16.dp))
                     .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
             )
 
             Column(
@@ -152,23 +156,13 @@ fun RegisterScreen(
                                 senha = senha
                             )
 
-                            // Log do JSON que será enviado
-                            Log.d("RegisterScreen", "JSON enviado: $usuarioRequest")
-
                             usuarioService.registerUser(usuarioRequest)
                                 .enqueue(object : Callback<UsuarioResponse> {
                                     override fun onResponse(call: Call<UsuarioResponse>, response: Response<UsuarioResponse>) {
-                                        Log.d("RegisterScreen", "Código HTTP: ${response.code()}")
-                                        Log.d("RegisterScreen", "Body da resposta: ${response.body()}")
-
                                         if (!response.isSuccessful) {
-                                            val errorBody = response.errorBody()?.string()
-                                            Log.e("RegisterScreen", "Erro do servidor: $errorBody")
                                             Toast.makeText(context, "Erro: ${response.code()}", Toast.LENGTH_SHORT).show()
                                         } else {
                                             Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
-
-                                            // 👉 Vai para login
                                             navegacao?.navigate("loguin") {
                                                 popUpTo("register") { inclusive = true }
                                             }
@@ -177,7 +171,6 @@ fun RegisterScreen(
                                     }
 
                                     override fun onFailure(call: Call<UsuarioResponse>, t: Throwable) {
-                                        Log.e("RegisterScreen", "Falha na requisição", t)
                                         Toast.makeText(context, "Falha: ${t.message}", Toast.LENGTH_SHORT).show()
                                         toastShown = false
                                     }
@@ -192,8 +185,6 @@ fun RegisterScreen(
                 ) {
                     Text("Cadastrar", color = Color.White)
                 }
-
-
 
                 Spacer(modifier = Modifier.height(26.dp))
 
@@ -223,7 +214,8 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                TextButton(onClick = onLoginClick) {
+                // TextButton que agora vai para Login
+                TextButton(onClick = { navegacao?.navigate("loguin") }) {
                     Text("Já possui uma conta? ", color = Color.Gray)
                     Text("Entrar", color = greenColor)
                 }

@@ -18,12 +18,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.LoginRequest
-import com.example.mobilizatcc.model.UsuarioResponse
 import com.example.mobilizatcc.service.RetrofitFactory
 import retrofit2.Call
 import retrofit2.Callback
@@ -32,9 +32,7 @@ import retrofit2.Response
 @Composable
 fun LoginScreen(
     navegacao: NavHostController?,
-    onForgotPasswordClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {},
-    onRegisterClick: () -> Unit = {}
+    onGoogleClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
 
@@ -50,13 +48,13 @@ fun LoginScreen(
             // Cantos verdes decorativos
             Box(
                 modifier = Modifier
-                    .size(width = 105.dp, height = 25.dp)
+                    .size(width = 125.dp, height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
             )
             Box(
                 modifier = Modifier
-                    .size(width = 105.dp, height = 25.dp)
+                    .size(width = 125.dp, height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(topStart = 16.dp))
                     .align(Alignment.BottomEnd)
             )
@@ -141,7 +139,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     TextButton(
-                        onClick = onForgotPasswordClick,
+                        onClick = { navegacao?.navigate("recsenha1") },
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(
@@ -236,11 +234,17 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Link cadastro
-                TextButton(onClick = onRegisterClick) {
+                TextButton(onClick = { navegacao?.navigate("register") }) {
                     Text("Não possui uma conta?", color = Color.Gray)
                     Text(" Cadastrar", color = greenColor)
                 }
             }
         }
     }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginScreen(navegacao = null)
 }

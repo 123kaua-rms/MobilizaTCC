@@ -1,9 +1,12 @@
 package com.example.mobilizatcc.ui.theme
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,27 +16,49 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import com.example.mobilizatcc.R
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SplashScreen(
-    navController: NavController? = null,  // opcional para preview
+    navegacao: NavHostController?,
     onTimeout: () -> Unit = {}
 ) {
     val logoSizeDp = 300.dp
     val density = LocalDensity.current
     val logoSizePx = with(density) { logoSizeDp.toPx() }
 
-    // Simula loading de 3 segundos antes de ir para a próxima tela
-    LaunchedEffect(key1 = true) {
-        delay(3000)
+    // ✅ Timer de 5 segundos para navegar automaticamente
+    LaunchedEffect(Unit) {
+        delay(5000)
+        navegacao?.navigate("welcome-2")
         onTimeout()
     }
+
+    // ✅ Animação infinita dos círculos
+    val infiniteTransition = rememberInfiniteTransition(label = "circleAnimation")
+
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scaleAnim"
+    )
+
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alphaAnim"
+    )
 
     Surface(
         modifier = Modifier
@@ -45,27 +70,28 @@ fun SplashScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Canvas(modifier = Modifier.size(logoSizeDp * 1.6f)) {
-                val centerX = size.width / 2
-                val centerY = size.height / 2
-
+            // 🎞️ Círculos animados ao redor do logo
+            Canvas(modifier = Modifier.size(logoSizeDp * 1.8f)) {
+                val center = Offset(size.width / 2, size.height / 2)
                 val baseRadius = logoSizePx / 2
+
                 val radii = listOf(
-                    baseRadius * 0.9f,
-                    baseRadius * 1.1f,
-                    baseRadius * 1.3f
+                    baseRadius * (scale * 0.9f),
+                    baseRadius * (scale * 1.1f),
+                    baseRadius * (scale * 1.3f)
                 )
 
                 radii.forEach { radius ->
                     drawCircle(
-                        color = Color.LightGray,
+                        color = Color.LightGray.copy(alpha = alpha),
                         radius = radius,
                         style = Stroke(width = 3f),
-                        center = Offset(centerX, centerY)
+                        center = center
                     )
                 }
             }
 
+            // 🟢 Logo central
             Image(
                 painter = painterResource(id = R.drawable.logo_claro),
                 contentDescription = "Mobiliza Logo",
@@ -78,5 +104,5 @@ fun SplashScreen(
 @Preview(showBackground = true)
 @Composable
 fun SplashScreenPreview() {
-    SplashScreen(onTimeout = {})
+    SplashScreen(navegacao = null)
 }

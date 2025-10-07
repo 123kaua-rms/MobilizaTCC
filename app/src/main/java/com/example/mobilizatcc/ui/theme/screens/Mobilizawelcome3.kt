@@ -18,10 +18,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
 
 @Composable
-fun OnboardingScreen2(
+fun MobilizaWelcome3(
+    navegacao: NavHostController?,
+
     onNextClick: () -> Unit = {},
     onSkipClick: () -> Unit = {}
 ) {
@@ -74,7 +77,7 @@ fun OnboardingScreen2(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onSkipClick) {
+                TextButton(onClick = { navegacao?.navigate("cadastro") }) {
                     Text(text = "Pular", color = Color.Gray)
                 }
 
@@ -110,9 +113,11 @@ fun OnboardingScreen2(
                     }
                 }
 
-                // Botão circular de próxima tela
+                // ✅ Botão circular que navega para "welcome4"
                 IconButton(
-                    onClick = onNextClick,
+                    onClick = {
+                        navegacao?.navigate("welcome-4")
+                    },
                     modifier = Modifier
                         .size(40.dp)
                         .background(color = greenColor, shape = CircleShape)
@@ -130,6 +135,6 @@ fun OnboardingScreen2(
 
 @Preview(showBackground = true)
 @Composable
-fun OnboardingScreen2Preview() {
-    OnboardingScreen2()
+fun MobilizaWelcome3Preview() {
+    MobilizaWelcome3(navegacao = null)
 }

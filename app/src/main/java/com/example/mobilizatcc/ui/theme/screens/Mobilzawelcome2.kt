@@ -1,6 +1,5 @@
 package com.example.mobilizatcc.ui.theme.screens
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,12 +17,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
 
 @Composable
 fun OnboardingScreen1(
-    onNextClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {}
+    navegacao: NavHostController?
 ) {
     val greenColor = Color(0xFF3AAA35)
 
@@ -42,7 +41,7 @@ fun OnboardingScreen1(
 
             // Imagem central
             Image(
-                painter = painterResource(id = R.drawable.route), // substitua com o nome correto da imagem
+                painter = painterResource(id = R.drawable.route),
                 contentDescription = "Imagem de rota",
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
@@ -73,11 +72,12 @@ fun OnboardingScreen1(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onSkipClick) {
+                // ✅ "Pular" agora leva direto para a tela de cadastro
+                TextButton(onClick = { navegacao?.navigate("cadastro") }) {
                     Text(text = "Pular", color = Color.Gray)
                 }
 
-                // Indicadores
+                // Indicadores de progresso (primeira bolinha ativa)
                 Row(horizontalArrangement = Arrangement.Center) {
                     Box(
                         modifier = Modifier
@@ -97,9 +97,11 @@ fun OnboardingScreen1(
                     }
                 }
 
-                // Botão circular de próxima tela
+                // ✅ Botão circular que vai para "welcome-3"
                 IconButton(
-                    onClick = onNextClick,
+                    onClick = {
+                        navegacao?.navigate("welcome-3")
+                    },
                     modifier = Modifier
                         .size(40.dp)
                         .background(color = greenColor, shape = CircleShape)
@@ -118,5 +120,5 @@ fun OnboardingScreen1(
 @Preview(showBackground = true)
 @Composable
 fun OnboardingScreen1Preview() {
-    OnboardingScreen1()
+    OnboardingScreen1(navegacao = null)
 }

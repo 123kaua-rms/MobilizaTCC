@@ -1,62 +1,62 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.model.ResetSenhaRequest
+import com.example.mobilizatcc.service.RetrofitFactory
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
-fun MobilizaCadastro(
-    onRegisterClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {}
+fun MobilizaRecSenha3(
+    navegacao: NavHostController?,
+    email: String,
+    codigo: Int
 ) {
     val greenColor = Color(0xFF3AAA35)
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    var nome by remember { mutableStateOf("") }
-    var usuario by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var senha by remember { mutableStateOf("") }
-
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(),
-        color = Color.White
-    ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // Canto verde topo ESQUERDO
+            // Cantos verdes
             Box(
                 modifier = Modifier
-                    .size(width = 105.dp, height = 25.dp)
+                    .size(width = 125.dp, height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
             )
-
-            // Canto verde inferior DIREITO
             Box(
                 modifier = Modifier
-                    .size(width = 105.dp, height = 25.dp)
+                    .size(width = 125.dp, height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(topStart = 16.dp))
                     .align(Alignment.BottomEnd)
             )
 
-            // Conteúdo principal
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -65,155 +65,85 @@ fun MobilizaCadastro(
                 verticalArrangement = Arrangement.Top
             ) {
 
-                Spacer(modifier = Modifier.height(129.dp))
+                Spacer(modifier = Modifier.height(60.dp))
 
-                // Título com "Mobiliza" verde
-                Text(
-                    text = buildAnnotatedString {
-                        append("Bem-vindo ao ")
-                        withStyle(style = SpanStyle(color = greenColor, fontWeight = FontWeight.Bold)) {
-                            append("Mobiliza!")
-                        }
-                    },
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(9.dp))
-
-                Text(
-                    text = "Faça seu cadastro para ter acesso sua conta",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center
+                // Logo
+                Image(
+                    painter = painterResource(id = R.drawable.logo_claro),
+                    contentDescription = "Logo Mobiliza",
+                    modifier = Modifier.size(140.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Nome completo
+                Text(
+                    text = "Digite sua nova senha",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
                 OutlinedTextField(
-                    value = nome,
-                    onValueChange = { nome = it },
-                    label = { Text("Nome completo") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.user),
-                            contentDescription = "Nome",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    placeholder = { Text("Nova senha") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Nome de usuário
                 OutlinedTextField(
-                    value = usuario,
-                    onValueChange = { usuario = it },
-                    label = { Text("Nome de usuário") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.user),
-                            contentDescription = "Usuário",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    placeholder = { Text("Confirme a nova senha") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Email
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.fontisto_email),
-                            contentDescription = "Email",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // Senha
-                OutlinedTextField(
-                    value = senha,
-                    onValueChange = { senha = it },
-                    label = { Text("Senha") },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.lock),
-                            contentDescription = "Senha",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(25.dp))
-
-                // Botão cadastrar
                 Button(
-                    onClick = onRegisterClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
+                    onClick = {
+                        if (newPassword != confirmPassword) {
+                            Toast.makeText(context, "Senhas não coincidem", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+
+                        loading = true
+
+                        val service = RetrofitFactory().getUsuarioService()
+                        val request = ResetSenhaRequest(email, codigo, newPassword)
+
+                        service.resetarSenha(request).enqueue(object : Callback<Void> {
+                            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                                loading = false
+                                if (response.isSuccessful) {
+                                    Toast.makeText(context, "Senha alterada com sucesso", Toast.LENGTH_SHORT).show()
+                                    navegacao?.navigate("loguin")
+                                } else {
+                                    Toast.makeText(context, "Erro ao atualizar senha", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+
+                            override fun onFailure(call: Call<Void>, t: Throwable) {
+                                loading = false
+                                Toast.makeText(context, "Falha na conexão: ${t.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        })
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Cadastrar", color = Color.White)
-                }
-
-                Spacer(modifier = Modifier.height(26.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
-                    Text(
-                        text = " OU ",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
-                    Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
-                }
-
-                Spacer(modifier = Modifier.height(22.dp))
-
-                // Google login button
-                OutlinedButton(
-                    onClick = onGoogleClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.google),
-                        contentDescription = "Google",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Logue com Google", color = Color.Black)
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                TextButton(onClick = onLoginClick) {
-                    Text("Já possui uma conta?", color = Color.Gray)
-                    Text("Entrar", color = greenColor)
+                    Text(if (loading) "Enviando..." else "Enviar", color = Color.White)
                 }
             }
         }
@@ -222,6 +152,6 @@ fun MobilizaCadastro(
 
 @Preview(showBackground = true)
 @Composable
-fun MobilizaCadastroPreview() {
-    MobilizaCadastro()
+fun MobilizaRecSenha3Preview() {
+    MobilizaRecSenha3(navegacao = null, email = "teste@email.com", codigo = 123456)
 }

@@ -1,6 +1,5 @@
 package com.example.mobilizatcc.ui.theme.screens
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,12 +17,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
 
 @Composable
-fun OnboardingScreen3(
-    onNextClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {}
+fun MobilizaWelcome4(
+    navegacao: NavHostController?,
 ) {
     val greenColor = Color(0xFF3AAA35)
 
@@ -42,7 +41,7 @@ fun OnboardingScreen3(
 
             // Imagem central
             Image(
-                painter = painterResource(id = R.drawable.homens), // Substitua com o nome correto
+                painter = painterResource(id = R.drawable.homens),
                 contentDescription = "Imagem de passageiros conversando",
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
@@ -74,7 +73,12 @@ fun OnboardingScreen3(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onSkipClick) {
+                TextButton(
+                    onClick = {
+                        // Caso queira pular, vai direto pro cadastro
+                        navegacao?.navigate("cadastro")
+                    }
+                ) {
                     Text(text = "Pular", color = Color.Gray)
                 }
 
@@ -107,9 +111,11 @@ fun OnboardingScreen3(
                     )
                 }
 
-                // Botão circular de próxima tela
+                // ✅ Botão circular que navega para "welcome4"
                 IconButton(
-                    onClick = onNextClick,
+                    onClick = {
+                        navegacao?.navigate("welcome-5")
+                    },
                     modifier = Modifier
                         .size(40.dp)
                         .background(color = greenColor, shape = CircleShape)
@@ -127,6 +133,6 @@ fun OnboardingScreen3(
 
 @Preview(showBackground = true)
 @Composable
-fun OnboardingScreen3Preview() {
-    OnboardingScreen3()
+fun MobilizaWelcome4Preview() {
+    MobilizaWelcome4(navegacao = null)
 }
