@@ -32,7 +32,7 @@ fun SplashScreen(
 
     // ✅ Timer de 5 segundos para navegar automaticamente
     LaunchedEffect(Unit) {
-        delay(5000)
+        delay(4000)
         navegacao?.navigate("welcome-2")
         onTimeout()
     }

@@ -6,6 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,13 +41,42 @@ fun MobilizaRecSenha3(
     val greenColor = Color(0xFF3AAA35)
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
+    var showConfirmPassword by remember { mutableStateOf(false) }
+    var passwordStrength by remember { mutableStateOf("") }
+    var passwordStrengthColor by remember { mutableStateOf(Color.Gray) }
     var loading by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    // Lista simulada de senhas já utilizadas
+    val senhasJaUsadas = listOf("mobiliza123", "senha123", "12345678")
+
+    // Função que verifica força da senha
+    fun avaliarForcaSenha(senha: String) {
+        when {
+            senha.length < 6 -> {
+                passwordStrength = "Senha fraca"
+                passwordStrengthColor = Color.Red
+            }
+            senha.matches(Regex(".*[A-Z].*")) && senha.matches(Regex(".*[0-9].*")) && senha.length >= 8 -> {
+                passwordStrength = "Senha forte"
+                passwordStrengthColor = Color(0xFF3AAA35)
+            }
+            senha.length >= 6 -> {
+                passwordStrength = "Senha média"
+                passwordStrengthColor = Color(0xFFFFA500)
+            }
+            else -> {
+                passwordStrength = ""
+                passwordStrengthColor = Color.Gray
+            }
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // Cantos verdes
+            // Cantos verdes decorativos
             Box(
                 modifier = Modifier
                     .size(width = 125.dp, height = 45.dp)
@@ -67,7 +100,6 @@ fun MobilizaRecSenha3(
 
                 Spacer(modifier = Modifier.height(60.dp))
 
-                // Logo
                 Image(
                     painter = painterResource(id = R.drawable.logo_claro),
                     contentDescription = "Logo Mobiliza",
@@ -86,39 +118,77 @@ fun MobilizaRecSenha3(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // Campo nova senha
                 OutlinedTextField(
                     value = newPassword,
-                    onValueChange = { newPassword = it },
+                    onValueChange = {
+                        newPassword = it
+                        avaliarForcaSenha(it)
+                    },
                     placeholder = { Text("Nova senha") },
                     singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        val icon = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility
+                        IconButton(onClick = { showPassword = !showPassword }) {
+                            Icon(icon, contentDescription = "Mostrar senha")
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                // Indicador de força da senha
+                if (passwordStrength.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = passwordStrength,
+                        color = passwordStrengthColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Campo confirmação de senha
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
                     placeholder = { Text("Confirme a nova senha") },
                     singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        val icon = if (showConfirmPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility
+                        IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
+                            Icon(icon, contentDescription = "Mostrar confirmação")
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // Botão Enviar
                 Button(
                     onClick = {
-                        if (newPassword != confirmPassword) {
-                            Toast.makeText(context, "Senhas não coincidem", Toast.LENGTH_SHORT).show()
-                            return@Button
+                        when {
+                            newPassword != confirmPassword -> {
+                                Toast.makeText(context, "As senhas não coincidem", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+                            newPassword in senhasJaUsadas -> {
+                                Toast.makeText(context, "Esta senha já foi utilizada. Escolha outra.", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+                            passwordStrength == "Senha fraca" -> {
+                                Toast.makeText(context, "Escolha uma senha mais forte", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
                         }
 
                         loading = true
-
                         val service = RetrofitFactory().getUsuarioService()
                         val request = ResetSenhaRequest(email, codigo, newPassword)
 
@@ -126,7 +196,7 @@ fun MobilizaRecSenha3(
                             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                                 loading = false
                                 if (response.isSuccessful) {
-                                    Toast.makeText(context, "Senha alterada com sucesso", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Senha alterada com sucesso!", Toast.LENGTH_SHORT).show()
                                     navegacao?.navigate("loguin")
                                 } else {
                                     Toast.makeText(context, "Erro ao atualizar senha", Toast.LENGTH_SHORT).show()

@@ -3,8 +3,12 @@ package com.example.mobilizatcc.ui.theme.screens
 import LoguinResponse
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +19,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
@@ -22,12 +27,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.compose.animation.AnimatedVisibility
 import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.LoginRequest
 import com.example.mobilizatcc.service.RetrofitFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import android.util.Patterns
 
 @Composable
 fun LoginScreen(
@@ -38,7 +45,9 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -96,7 +105,7 @@ fun LoginScreen(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
                 // Campo Email
                 OutlinedTextField(
@@ -112,50 +121,75 @@ fun LoginScreen(
                             modifier = Modifier.size(20.dp)
                         )
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email).matches()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Campo Senha
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
-                        value = senha,
-                        onValueChange = { senha = it },
-                        label = { Text("Senha") },
-                        placeholder = { Text("Digite sua senha") },
-                        visualTransformation = PasswordVisualTransformation(),
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.lock),
-                                contentDescription = "Senha",
-                                tint = Color.Unspecified,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    TextButton(
-                        onClick = { navegacao?.navigate("recsenha1") },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text(
-                            text = "Esqueceu sua senha?",
-                            color = greenColor,
-                            fontSize = 13.sp,
-                            textDecoration = TextDecoration.Underline
+                // Campo Senha com olhinho
+                OutlinedTextField(
+                    value = senha,
+                    onValueChange = { senha = it },
+                    label = { Text("Senha") },
+                    placeholder = { Text("Digite sua senha") },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.lock),
+                            contentDescription = "Senha",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(20.dp)
                         )
-                    }
+                    },
+                    trailingIcon = {
+                        val icon = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = "Toggle password visibility",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable { showPassword = !showPassword }
+                        )
+                    },
+                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                TextButton(
+                    onClick = { navegacao?.navigate("recsenha1") },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(
+                        text = "Esqueceu sua senha?",
+                        color = greenColor,
+                        fontSize = 13.sp,
+                        textDecoration = TextDecoration.Underline
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // Botão LOGIN
                 Button(
                     onClick = {
+                        // Validação de email antes do login
+                        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            errorMessage = "Por favor, insira um email válido."
+                            return@Button
+                        }
+                        if (senha.isBlank()) {
+                            errorMessage = "Por favor, insira sua senha."
+                            return@Button
+                        }
+
+                        isLoading = true
+                        errorMessage = null
+
                         val usuarioService = RetrofitFactory().getUsuarioService()
                         val call = usuarioService.loguinUser(LoginRequest(email = email, senha = senha))
 
@@ -164,23 +198,24 @@ fun LoginScreen(
                                 call: Call<LoguinResponse>,
                                 response: Response<LoguinResponse>
                             ) {
+                                isLoading = false
                                 if (response.isSuccessful) {
                                     val body = response.body()
                                     if (body != null && body.status && body.usuario != null) {
-                                        // Usuário logado com sucesso
                                         navegacao?.navigate("home") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     } else {
-                                        errorMessage = "Email ou senha inválidos"
+                                        errorMessage = "Email ou senha incorretos. Tente novamente."
                                     }
                                 } else {
-                                    errorMessage = "Erro: ${response.code()}"
+                                    errorMessage = "Não foi possível realizar o login. Verifique seus dados."
                                 }
                             }
 
                             override fun onFailure(call: Call<LoguinResponse>, t: Throwable) {
-                                errorMessage = "Falha na conexão: ${t.message}"
+                                isLoading = false
+                                errorMessage = "Sem conexão com a internet. Verifique e tente novamente."
                             }
                         })
                     },
@@ -188,18 +223,47 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    enabled = !isLoading
                 ) {
-                    Text("Login", color = Color.White)
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    } else {
+                        Text("Login", color = Color.White)
+                    }
                 }
 
-                // Mensagem de erro
-                errorMessage?.let {
-                    Spacer(Modifier.height(8.dp))
-                    Text(it, color = Color.Red, fontSize = 14.sp)
+                // Mensagem de erro (UX amigável)
+                AnimatedVisibility(visible = errorMessage != null) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth()
+                            .background(Color(0xFFFFEBEE), shape = RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.lock),
+                                contentDescription = null,
+                                tint = Color.Red,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = errorMessage ?: "",
+                                color = Color.Red,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // OU
                 Row(
@@ -219,7 +283,8 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    enabled = !isLoading
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.google),
@@ -234,9 +299,12 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Link cadastro
-                TextButton(onClick = { navegacao?.navigate("register") }) {
+                TextButton(
+                    onClick = { navegacao?.navigate("cadastro") },
+                    enabled = !isLoading
+                ) {
                     Text("Não possui uma conta?", color = Color.Gray)
-                    Text(" Cadastrar", color = greenColor)
+                    Text(" Cadastrar", color = greenColor, fontWeight = FontWeight.Bold)
                 }
             }
         }

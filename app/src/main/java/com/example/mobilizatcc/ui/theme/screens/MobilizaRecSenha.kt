@@ -1,5 +1,6 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -120,8 +121,8 @@ fun RecSenhaScreen(
 
                 Button(
                     onClick = {
-                        if (email.isBlank()) {
-                            Toast.makeText(context, "Informe um email válido", Toast.LENGTH_SHORT).show()
+                        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            Toast.makeText(context, "Informe um e-mail válido", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
 

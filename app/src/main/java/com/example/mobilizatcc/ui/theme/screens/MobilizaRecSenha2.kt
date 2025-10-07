@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -32,10 +34,13 @@ fun CodeVerificationScreen(
 ) {
     val greenColor = Color(0xFF3AAA35)
     val codeLength = 6
-    var code by remember { mutableStateOf(List(codeLength) { "" }) }
+    var code by remember { mutableStateOf(List(codeLength) { "" }) } // Lista de 6 dígitos
     var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
+
+    // FocusRequesters para cada campo
+    val focusRequesters = List(codeLength) { FocusRequester() }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -89,7 +94,10 @@ fun CodeVerificationScreen(
 
                 Spacer(modifier = Modifier.height(29.dp))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     for (i in 0 until codeLength) {
                         OutlinedTextField(
                             value = code[i],
@@ -98,6 +106,10 @@ fun CodeVerificationScreen(
                                     val newList = code.toMutableList()
                                     newList[i] = it
                                     code = newList
+                                    // Avança o foco automaticamente
+                                    if (it.isNotEmpty() && i < codeLength - 1) {
+                                        focusRequesters[i + 1].requestFocus()
+                                    }
                                 }
                             },
                             singleLine = true,
@@ -105,9 +117,11 @@ fun CodeVerificationScreen(
                                 fontSize = 20.sp,
                                 textAlign = TextAlign.Center
                             ),
-                            modifier = Modifier.size(50.dp),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             visualTransformation = VisualTransformation.None,
+                            modifier = Modifier
+                                .size(50.dp)
+                                .focusRequester(focusRequesters[i]),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color.Gray,
@@ -145,7 +159,6 @@ fun CodeVerificationScreen(
 
                         val service = RetrofitFactory().getUsuarioService()
 
-                        // Usando ResetSenhaRequest para bater com a assinatura do serviço
                         // senha provisória para que o backend aceite o body na verificação
                         val request = ResetSenhaRequest(
                             email = email,
@@ -157,7 +170,6 @@ fun CodeVerificationScreen(
                             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                                 loading = false
                                 if (response.isSuccessful) {
-                                    // Código verificado (ou backend aceitou o body), navegar para redefinir senha real
                                     navegacao?.navigate("recsenha3/$email/$codigoInt")
                                 } else {
                                     errorMessage = "Código incorreto. Tente novamente."
