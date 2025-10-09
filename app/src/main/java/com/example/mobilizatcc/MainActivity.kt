@@ -62,6 +62,13 @@ class MainActivity : ComponentActivity() {
                         val codigo = backStackEntry.arguments?.getInt("codigo") ?: 0
                         MobilizaRecSenha3(navegacao, email, codigo)
                     }
+
+
+
+
+
+                    composable("linhas") { LinesScreen(navegacao) }
+
                 }
             }
         }
