@@ -1,9 +1,7 @@
 package com.example.mobilizatcc.ui.theme.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,12 +76,10 @@ fun LinesScreen(navegacao: NavHostController?) {
                 ) {
                     items(busLines) { line ->
                         BusLineItem(line = line)
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(10.dp))  // Ajuste na altura
                     }
                 }
-
             }
-
         }
     }
 }
@@ -276,19 +271,17 @@ fun BusLineItem(line: BusLine) {
 }
 
 @Composable
-fun getLineColor(lineNumber: String): Color {
-    return when {
-        lineNumber.startsWith("JA") -> Color(0xFFFF9800)
-        lineNumber.startsWith("39") -> Color(0xFF2196F3)
-        lineNumber.startsWith("10") -> Color(0xFFFFEB3B)
-        lineNumber.startsWith("20") -> Color(0xFFFFC107)
-        else -> Color(0xFF4CAF50)
+fun getLineColor(line: String): Color {
+    return when (line) {
+        "106" -> Color(0xFF4CAF50) // Exemplo de cor
+        "21" -> Color(0xFF3F51B5) // Outra cor
+        else -> Color(0xFF9E9E9E)
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+// Preview Ajustado
+@Preview(showBackground = true)
 @Composable
 fun LinesScreenPreview() {
-    val navController = rememberNavController()
-    LinesScreen(navegacao = navController)
+    LinesScreen(navegacao = rememberNavController())
 }
