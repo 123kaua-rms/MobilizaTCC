@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
                 val navegacao = rememberNavController()
                 NavHost(
                     navController = navegacao,
-                    startDestination = "recsenha1"
+                    startDestination = "linhas"
                 ) {
 
 // Onboarding / Welcome screens

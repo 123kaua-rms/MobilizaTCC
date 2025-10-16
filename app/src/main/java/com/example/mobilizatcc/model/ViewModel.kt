@@ -10,39 +10,29 @@ import kotlinx.coroutines.launch
 
 class LinesViewModel : ViewModel() {
 
+    private val service = RetrofitFactory().getUsuarioService()
+
     private val _lines = MutableStateFlow<List<BusLineResponse>>(emptyList())
-    val lines: StateFlow<List<  BusLineResponse>> get() = _lines
+    val lines: StateFlow<List<BusLineResponse>> = _lines
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> get() = _isLoading
-
-    private val usuarioService = RetrofitFactory().getUsuarioService()
-
-    init {
-        fetchLines()
-    }
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     fun fetchLines() {
         viewModelScope.launch {
-            _isLoading.value = true
             try {
-                val response = usuarioService.getAllLines()
-                _lines.value = response
+                _isLoading.value = true
+                val response = service.getAllLines()
+                if (response.status) {
+                    _lines.value = response.linhas
+                } else {
+                    _lines.value = emptyList()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                _lines.value = emptyList()
             } finally {
                 _isLoading.value = false
-            }
-        }
-    }
-
-    fun searchLines(query: String) {
-        viewModelScope.launch {
-            val allLines = usuarioService.getAllLines()
-            _lines.value = if (query.isBlank()) allLines
-            else allLines.filter {
-                it.routeShortName.contains(query, ignoreCase = true) ||
-                        it.routeLongName.contains(query, ignoreCase = true)
             }
         }
     }

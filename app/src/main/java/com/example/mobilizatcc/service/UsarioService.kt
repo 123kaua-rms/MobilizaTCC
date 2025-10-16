@@ -6,6 +6,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface UsuarioService {
+
     @Headers("Content-Type: application/json")
     @POST("usuario")
     fun registerUser(@Body usuario: UsuarioRequest): Call<UsuarioResponse>
@@ -26,6 +27,9 @@ interface UsuarioService {
     @POST("usuario/resetar-senha")
     fun resetarSenha(@Body body: ResetSenhaRequest): Call<Void>
 
-    @GET("v1/mobiliza/linhas")
-    suspend fun getAllLines(): List<BusLineResponse>
+    @GET("linhas")
+    suspend fun getAllLines(): LinesApiResponse
+
+    @GET("linhas/{id}")
+    suspend fun getLineById(@Path("id") id: String): BusLineResponse
 }
