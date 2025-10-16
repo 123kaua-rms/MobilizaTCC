@@ -49,11 +49,17 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
+    // Flags de validação
+    val isEmailValid = email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    val isSenhaValid = senha.isNotBlank()
+    val isFormValid = isEmailValid && isSenhaValid
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+
             // Cantos verdes decorativos
             Box(
                 modifier = Modifier
@@ -107,12 +113,17 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Campo Email
+                // Campo Email / Nome de Usuário
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    placeholder = { Text("Digite seu email") },
+                    onValueChange = {
+                        email = it
+                        if (it.isBlank()) errorMessage = "O campo E-mail/Nome de Usuário é obrigatório."
+                        else if (!Patterns.EMAIL_ADDRESS.matcher(it).matches()) errorMessage = "Digite um e-mail válido."
+                        else errorMessage = null
+                    },
+                    label = { Text("E-mail ou Nome de Usuário") },
+                    placeholder = { Text("Digite seu e-mail ou nome de usuário") },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.fontisto_email),
@@ -128,10 +139,14 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Campo Senha com olhinho
+                // Campo Senha com alternância de visibilidade
                 OutlinedTextField(
                     value = senha,
-                    onValueChange = { senha = it },
+                    onValueChange = {
+                        senha = it
+                        if (it.isBlank()) errorMessage = "O campo Senha é obrigatório."
+                        else errorMessage = null
+                    },
                     label = { Text("Senha") },
                     placeholder = { Text("Digite sua senha") },
                     leadingIcon = {
@@ -146,7 +161,7 @@ fun LoginScreen(
                         val icon = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
                         Icon(
                             imageVector = icon,
-                            contentDescription = "Toggle password visibility",
+                            contentDescription = "Mostrar/Ocultar senha",
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable { showPassword = !showPassword }
@@ -156,7 +171,6 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -174,16 +188,11 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Botão LOGIN
+                // Botão ENTRAR (só habilita se form for válido)
                 Button(
                     onClick = {
-                        // Validação de email antes do login
-                        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                            errorMessage = "Por favor, insira um email válido."
-                            return@Button
-                        }
-                        if (senha.isBlank()) {
-                            errorMessage = "Por favor, insira sua senha."
+                        if (!isFormValid) {
+                            errorMessage = "Preencha corretamente os campos obrigatórios."
                             return@Button
                         }
 
@@ -206,16 +215,16 @@ fun LoginScreen(
                                             popUpTo("login") { inclusive = true }
                                         }
                                     } else {
-                                        errorMessage = "Email ou senha incorretos. Tente novamente."
+                                        errorMessage = "E-mail/Nome de usuário ou senha incorretos."
                                     }
                                 } else {
-                                    errorMessage = "Não foi possível realizar o login. Verifique seus dados."
+                                    errorMessage = "Falha no login. Verifique seus dados."
                                 }
                             }
 
                             override fun onFailure(call: Call<LoguinResponse>, t: Throwable) {
                                 isLoading = false
-                                errorMessage = "Sem conexão com a internet. Verifique e tente novamente."
+                                errorMessage = "Erro de conexão. Tente novamente."
                             }
                         })
                     },
@@ -224,7 +233,7 @@ fun LoginScreen(
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                     shape = RoundedCornerShape(8.dp),
-                    enabled = !isLoading
+                    enabled = !isLoading && isFormValid
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
@@ -233,11 +242,11 @@ fun LoginScreen(
                             modifier = Modifier.size(22.dp)
                         )
                     } else {
-                        Text("Login", color = Color.White)
+                        Text("Entrar", color = Color.White)
                     }
                 }
 
-                // Mensagem de erro (UX amigável)
+                // Mensagem de erro
                 AnimatedVisibility(visible = errorMessage != null) {
                     Box(
                         modifier = Modifier

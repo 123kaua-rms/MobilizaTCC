@@ -1,4 +1,4 @@
-package br.senai.sp.jandira.mobilizatcc
+package com.example.mobilizatcc
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -20,28 +20,28 @@ class MainActivity : ComponentActivity() {
                 val navegacao = rememberNavController()
                 NavHost(
                     navController = navegacao,
-                    startDestination = "linhas"
+                    startDestination = "recsenha1"
                 ) {
 
-                    // Onboarding / Welcome screens
+// Onboarding / Welcome screens
                     composable("welcome-1") { SplashScreen(navegacao) }
                     composable("welcome-2") { OnboardingScreen1(navegacao) }
                     composable("welcome-3") { MobilizaWelcome3(navegacao) }
                     composable("welcome-4") { MobilizaWelcome4(navegacao) }
                     composable("welcome-5") { OnboardingScreen5(navegacao) }
 
-                    // Registro / Login
+// Registro / Login
                     composable("cadastro") { RegisterScreen(navegacao) }
                     composable("cadastro-google") { FinalRegisterScreen(navegacao) }
                     composable("loguin") { LoginScreen(navegacao) }
 
-                    // Home
+// Home
                     composable("home") { MobilizaHomeScreen(navegacao) }
 
-                    // Recuperar senha - Tela 1 (início)
+// Recuperar senha - Tela 1 (início)
                     composable("recsenha1") { RecSenhaScreen(navegacao) }
 
-                    // Recuperar senha - Tela 2 (verificação de código)
+// Recuperar senha - Tela 2 (verificação de código)
                     composable(
                         route = "recsenha2/{email}",
                         arguments = listOf(navArgument("email") { type = NavType.StringType })
@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                         CodeVerificationScreen(navegacao, email)
                     }
 
-                    // Recuperar senha - Tela 3 (resetar senha)
+// Recuperar senha - Tela 3 (resetar senha)
                     composable(
                         route = "recsenha3/{email}/{codigo}",
                         arguments = listOf(

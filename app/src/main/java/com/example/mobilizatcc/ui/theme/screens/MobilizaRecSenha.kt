@@ -36,6 +36,9 @@ fun RecSenhaScreen(
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
 
+    // Variável para erro de validação
+    var emailError by remember { mutableStateOf<String?>(null) }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
@@ -103,7 +106,10 @@ fun RecSenhaScreen(
 
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        emailError = null // reseta o erro ao digitar
+                    },
                     placeholder = { Text("Digite seu e-mail") },
                     leadingIcon = {
                         Icon(
@@ -114,16 +120,44 @@ fun RecSenhaScreen(
                         )
                     },
                     visualTransformation = VisualTransformation.None,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = emailError != null
                 )
+
+                // Exibe mensagem de erro abaixo do campo, se houver
+                if (emailError != null) {
+                    Text(
+                        text = emailError ?: "",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     onClick = {
-                        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                            Toast.makeText(context, "Informe um e-mail válido", Toast.LENGTH_SHORT).show()
-                            return@Button
+                        // --- Validações de e-mail ---
+                        when {
+                            email.isBlank() -> {
+                                emailError = "O e-mail é obrigatório."
+                                return@Button
+                            }
+                            email.length < 6 || email.length > 150 -> {
+                                emailError = "O e-mail deve ter entre 6 e 150 caracteres."
+                                return@Button
+                            }
+                            email.all { it.isDigit() } -> {
+                                emailError = "O e-mail não pode conter apenas números."
+                                return@Button
+                            }
+                            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                emailError = "Informe um e-mail válido."
+                                return@Button
+                            }
                         }
 
                         loading = true
@@ -134,10 +168,10 @@ fun RecSenhaScreen(
                             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                                 loading = false
                                 if (response.isSuccessful) {
-                                    Toast.makeText(context, "Código enviado para seu email", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Código enviado para seu e-mail", Toast.LENGTH_SHORT).show()
                                     navegacao?.navigate("recsenha2/${email}")
                                 } else {
-                                    Toast.makeText(context, "Erro ao enviar email: ${response.code()}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Erro ao enviar e-mail: ${response.code()}", Toast.LENGTH_SHORT).show()
                                 }
                             }
 

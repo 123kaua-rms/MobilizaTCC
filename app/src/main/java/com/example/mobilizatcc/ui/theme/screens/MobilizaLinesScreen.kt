@@ -1,5 +1,6 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -8,7 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.DirectionsBus
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -16,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,8 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.R
-
-data class BusLine(val number: String, val description: String)
+import com.example.mobilizatcc.model.BusLineResponse
 
 @Composable
 fun LinesScreen(navegacao: NavHostController?) {
@@ -32,20 +35,27 @@ fun LinesScreen(navegacao: NavHostController?) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Ônibus", "Metrô", "Trem")
 
-    val busLines = listOf(
-        BusLine("106", "Terminal Central / Vila Nova - Estação KM 21"),
-        BusLine("21", "Jardim Paulista / Centro - Estação Km 21"),
-        BusLine("JA136", "Rodoviária / Bairro Industrial - Estação Centro"),
-        BusLine("392", "Expresso Centro / Shopping - Terminal de Jandira"),
-        BusLine("101", "Noturno Centro / Vila Esperança - Estação Centro"),
-        BusLine("20", "Rodoviária / Bairro Industrial"),
-        BusLine("JA125", "Estação / Parque das Flores")
-    )
+    // 🔹 Linhas mockadas (iguais às da SPTrans)
+    val mockLines = remember {
+        listOf(
+            BusLineResponse("1001", "SPTRANS", "701A", "Terminal Pirituba - Praça Ramos", 3, "FF5733", "FFFFFF"),
+            BusLineResponse("1002", "SPTRANS", "809P", "Terminal Lapa - Pq. São Domingos", 3, "33AFFF", "000000"),
+            BusLineResponse("1003", "SPTRANS", "177Y", "Metrô Santana - USP", 3, "4CAF50", "FFFFFF"),
+            BusLineResponse("1004", "SPTRANS", "875P", "Terminal Pinheiros - Lapa", 3, "F4B400", "000000"),
+            BusLineResponse("1005", "SPTRANS", "5109", "Term. Mercado - Jabaquara", 3, "9C27B0", "FFFFFF")
+        )
+    }
+
+    val filteredLines = remember(searchQuery) {
+        if (searchQuery.isEmpty()) mockLines
+        else mockLines.filter {
+            it.routeShortName.contains(searchQuery, ignoreCase = true) ||
+                    it.routeLongName.contains(searchQuery, ignoreCase = true)
+        }
+    }
 
     Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navegacao = navegacao, selectedRoute = "linhas")
-        }
+        bottomBar = { BottomNavigationBar(navegacao = navegacao, selectedRoute = "linhas") }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -60,7 +70,10 @@ fun LinesScreen(navegacao: NavHostController?) {
             ) {
                 Header()
                 Spacer(modifier = Modifier.height(20.dp))
-                SearchField(value = searchQuery, onValueChange = { searchQuery = it })
+                SearchField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it }
+                )
                 Spacer(modifier = Modifier.height(24.dp))
                 TransportTabs(
                     selectedTabIndex = selectedTabIndex,
@@ -74,9 +87,9 @@ fun LinesScreen(navegacao: NavHostController?) {
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
                 ) {
-                    items(busLines) { line ->
-                        BusLineItem(line = line)
-                        Spacer(modifier = Modifier.height(10.dp))  // Ajuste na altura
+                    items(filteredLines) { line ->
+                        BusLineItem(line)
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
                 }
             }
@@ -92,20 +105,13 @@ fun Header() {
             .padding(top = 12.dp),
         contentAlignment = Alignment.TopStart
     ) {
-        Box(
+        Image(
+            painter = painterResource(id = R.drawable.perfilcinza),
+            contentDescription = "Usuário",
             modifier = Modifier
-                .size(52.dp)
+                .size(36.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFF0F0F0)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Perfil",
-                modifier = Modifier.size(28.dp),
-                tint = Color.Gray
-            )
-        }
+        )
     }
 }
 
@@ -127,9 +133,7 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = {
-                    Text("Pesquise por uma linha", color = Color.Gray)
-                },
+                placeholder = { Text("Pesquise por uma linha", color = Color.Gray) },
                 modifier = Modifier
                     .weight(1f)
                     .background(Color.Transparent)
@@ -207,79 +211,61 @@ fun TransportTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit, tabs: Lis
 }
 
 @Composable
-fun BusLineItem(line: BusLine) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+fun BusLineItem(line: BusLineResponse) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.White)
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .width(80.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
+                .background(Color.White),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .width(80.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                modifier = Modifier.padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Row(
-                    modifier = Modifier
-                        .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.DirectionsBus,
-                        contentDescription = "Ícone de ônibus",
-                        tint = Color.DarkGray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = line.number,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = Color.Black
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(5.dp)
-                        .background(getLineColor(line.number))
+                Icon(
+                    imageVector = Icons.Filled.DirectionsBus,
+                    contentDescription = "Ícone de ônibus",
+                    tint = Color.DarkGray,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = line.routeShortName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color.Black
                 )
             }
-
-            Spacer(modifier = Modifier.width(20.dp))
-
-            Text(
-                text = line.description,
-                fontSize = 14.sp,
-                color = Color.DarkGray,
-                lineHeight = 20.sp,
-                modifier = Modifier.weight(1f)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .background(Color(android.graphics.Color.parseColor("#${line.routeColor}")))
             )
         }
+        Spacer(modifier = Modifier.width(20.dp))
+        Text(
+            text = line.routeLongName,
+            fontSize = 14.sp,
+            color = Color.DarkGray,
+            lineHeight = 20.sp,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
-@Composable
-fun getLineColor(line: String): Color {
-    return when (line) {
-        "106" -> Color(0xFF4CAF50) // Exemplo de cor
-        "21" -> Color(0xFF3F51B5) // Outra cor
-        else -> Color(0xFF9E9E9E)
-    }
-}
-
-// Preview Ajustado
 @Preview(showBackground = true)
 @Composable
 fun LinesScreenPreview() {

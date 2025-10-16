@@ -60,21 +60,6 @@ fun RotasScreen(navegacao: NavHostController?) {
                                 .size(36.dp)
                                 .clip(CircleShape)
                         )
-
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFFD700))
-                                .clickable { /* ação emergência */ },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.emergencia),
-                                contentDescription = "Emergência",
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
