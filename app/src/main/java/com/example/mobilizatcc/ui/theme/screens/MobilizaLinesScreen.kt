@@ -1,4 +1,3 @@
-// LinesScreen.kt
 package com.example.mobilizatcc.ui.theme.screens
 
 import androidx.compose.foundation.Image
@@ -117,72 +116,84 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
         Color(0xFF4CAF50)
     }
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.White)
-            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(10.dp))
-            .padding(horizontal = 12.dp, vertical = 10.dp)
             .clickable {
                 navegacao?.navigate("stops/${line.routeId}")
-            },
-        verticalAlignment = Alignment.CenterVertically
+            }
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .width(80.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(6.dp))
-                .background(Color.White),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+            Column(
+                modifier = Modifier
+                    .weight(0.2f) // substitui largura fixa por peso para responsividade
+                    .clip(RoundedCornerShape(6.dp))
+                    .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(6.dp))
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = Icons.Filled.DirectionsBus,
-                    contentDescription = "Ícone de ônibus",
-                    tint = Color.DarkGray,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = line.routeShortName,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = Color.Black
+                Row(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.DirectionsBus,
+                        contentDescription = "Ícone de ônibus",
+                        tint = Color.DarkGray,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = line.routeShortName,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        color = Color.Black
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .background(lineColor)
                 )
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(lineColor)
-            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(0.8f) // resto do espaço para texto
+            ) {
+                Text(
+                    text = origem,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = destino,
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = origem,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = destino,
-                fontSize = 12.sp,
-                color = Color.Gray,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp),
+            color = Color(0xFFE0E0E0),
+            thickness = 1.dp
+        )
     }
 }
+
 
 @Composable
 fun Header() {
@@ -206,46 +217,58 @@ fun Header() {
 fun SearchField(value: String, onValueChange: (String) -> Unit) {
     Box(
         modifier = Modifier
-            .fillMaxWidth(0.95f)
-            .height(50.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(14.dp))
-            .background(Color(0xFFF7F7F7)),
-        contentAlignment = Alignment.CenterStart
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp) // 🔹 centralização igual à imagem
+            .height(42.dp),
+        contentAlignment = Alignment.Center
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+                .background(Color(0xFFF7F7F7)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text("Pesquise por uma linha", color = Color.Gray, fontSize = 13.sp) },
+                placeholder = {
+                    Text(
+                        text = "Pesquise por uma linha",
+                        color = Color.Gray,
+                        fontSize = 8.sp
+                    )
+                },
                 modifier = Modifier
-                    .weight(1f)
-                    .background(Color.Transparent)
-                    .padding(start = 4.dp),
+                    .weight(2f)
+                    .fillMaxHeight()
+                    .padding(horizontal = 12.dp),
+                singleLine = true,
+                maxLines = 1,
+                textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     cursorColor = Color(0xFF4CAF50)
-                ),
-                textStyle = LocalTextStyle.current.copy(fontSize = 13.sp)
+                )
             )
             Box(
                 modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(topEnd = 14.dp, bottomEnd = 14.dp))
-                    .background(Color(0xFF4CAF50)),
+                    .width(42.dp)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
+                    .background(Color(0xFF26A65B)), // 🔹 verde igual ao da imagem
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Buscar",
                     tint = Color.White,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
@@ -256,25 +279,35 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
 fun TransportTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit, tabs: List<String>) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
     ) {
         Icon(
             imageVector = Icons.Default.Star,
             contentDescription = "Favoritos",
             tint = Color.Gray,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         TabRow(
             selectedTabIndex = selectedTabIndex,
             containerColor = Color.Transparent,
-            contentColor = Color(0xFF4CAF50),
+            contentColor = Color(0xFF26A65B),
             modifier = Modifier.fillMaxWidth(),
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
                     Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                    height = 3.dp,
-                    color = Color(0xFF4CAF50)
+                    height = 2.dp,
+                    color = Color(0xFF26A65B)
+                )
+            },
+            divider = {
+                Divider(
+                    color = Color(0xFFE0E0E0),
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(top = 2.dp)
                 )
             }
         ) {
@@ -286,11 +319,10 @@ fun TransportTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit, tabs: Lis
                         Text(
                             text = title,
                             fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            color = if (selectedTabIndex == index) Color(0xFF26A65B) else Color.Gray
                         )
-                    },
-                    selectedContentColor = Color(0xFF4CAF50),
-                    unselectedContentColor = Color.Gray
+                    }
                 )
             }
         }

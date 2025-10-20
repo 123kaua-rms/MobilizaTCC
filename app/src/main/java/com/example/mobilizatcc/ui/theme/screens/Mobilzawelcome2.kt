@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +27,16 @@ fun OnboardingScreen1(
 ) {
     val greenColor = Color(0xFF3AAA35)
 
+    // 📐 Pega dimensões da tela
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+
+    // 📊 Define tamanhos proporcionais à tela
+    val horizontalPadding = screenWidth * 0.06f // ex: 6% da largura
+    val imageHeight = screenHeight * 0.35f      // ex: 35% da altura
+    val nextButtonSize = screenWidth * 0.12f    // ex: 12% da largura
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
@@ -33,27 +44,28 @@ fun OnboardingScreen1(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = horizontalPadding, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Imagem central
+            // 🖼️ Imagem responsiva
             Image(
                 painter = painterResource(id = R.drawable.route),
                 contentDescription = "Imagem de rota",
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .height(240.dp)
+                    .height(imageHeight)
             )
 
-            // Textos
+            // 📝 Textos
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "Encontre sua melhor rota",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color(0xFF202020)
+                    color = Color(0xFF202020),
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -66,18 +78,18 @@ fun OnboardingScreen1(
                 )
             }
 
-            // Rodapé com indicadores e botões
+            // 🟢 Rodapé com indicadores e botões
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ✅ "Pular" agora leva direto para a tela de cadastro
+                // "Pular" → cadastro
                 TextButton(onClick = { navegacao?.navigate("cadastro") }) {
                     Text(text = "Pular", color = Color.Gray)
                 }
 
-                // Indicadores de progresso (primeira bolinha ativa)
+                // 🔘 Indicadores de progresso
                 Row(horizontalArrangement = Arrangement.Center) {
                     Box(
                         modifier = Modifier
@@ -97,13 +109,11 @@ fun OnboardingScreen1(
                     }
                 }
 
-                // ✅ Botão circular que vai para "welcome-3"
+                // ➡️ Botão circular responsivo
                 IconButton(
-                    onClick = {
-                        navegacao?.navigate("welcome-3")
-                    },
+                    onClick = { navegacao?.navigate("welcome-3") },
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(nextButtonSize)
                         .background(color = greenColor, shape = CircleShape)
                 ) {
                     Icon(

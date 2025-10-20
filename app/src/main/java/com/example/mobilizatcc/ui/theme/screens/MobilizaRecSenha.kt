@@ -36,33 +36,36 @@ fun RecSenhaScreen(
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
 
-    // Variável para erro de validação
     var emailError by remember { mutableStateOf<String?>(null) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val maxWidth = maxWidth
+            val maxHeight = maxHeight
 
-            // Cantos verdes
+            // Cantos verdes decorativos
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .size(width = 125.dp.coerceAtMost(maxWidth / 3), height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
             )
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .size(width = 125.dp.coerceAtMost(maxWidth / 3), height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(topStart = 16.dp))
                     .align(Alignment.BottomEnd)
             )
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 16.dp, bottom = 16.dp)
+                    .align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -70,26 +73,29 @@ fun RecSenhaScreen(
                 Image(
                     painter = painterResource(id = R.drawable.lock2),
                     contentDescription = "Ícone de segurança",
-                    modifier = Modifier.size(120.dp)
+                    modifier = Modifier
+                        .size(if (maxWidth < 360.dp) 90.dp else 120.dp) // tamanho adaptável
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
                     text = "Problemas para entrar?",
-                    fontSize = 20.sp,
+                    fontSize = if (maxWidth < 360.dp) 18.sp else 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Insira o e-mail da conta que deseja recuperar",
-                    fontSize = 14.sp,
+                    fontSize = if (maxWidth < 360.dp) 12.sp else 14.sp,
                     color = Color.Gray,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -108,7 +114,7 @@ fun RecSenhaScreen(
                     value = email,
                     onValueChange = {
                         email = it
-                        emailError = null // reseta o erro ao digitar
+                        emailError = null
                     },
                     placeholder = { Text("Digite seu e-mail") },
                     leadingIcon = {
@@ -121,10 +127,10 @@ fun RecSenhaScreen(
                     },
                     visualTransformation = VisualTransformation.None,
                     modifier = Modifier.fillMaxWidth(),
-                    isError = emailError != null
+                    isError = emailError != null,
+                    singleLine = true
                 )
 
-                // Exibe mensagem de erro abaixo do campo, se houver
                 if (emailError != null) {
                     Text(
                         text = emailError ?: "",
@@ -140,7 +146,6 @@ fun RecSenhaScreen(
 
                 Button(
                     onClick = {
-                        // --- Validações de e-mail ---
                         when {
                             email.isBlank() -> {
                                 emailError = "O e-mail é obrigatório."
@@ -185,7 +190,8 @@ fun RecSenhaScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
-                    shape = RoundedCornerShape(6.dp)
+                    shape = RoundedCornerShape(6.dp),
+                    enabled = !loading
                 ) {
                     Text(if (loading) "Enviando..." else "Enviar", color = Color.White)
                 }
@@ -194,12 +200,13 @@ fun RecSenhaScreen(
 
                 TextButton(onClick = { navegacao?.navigate("loguin") }) {
                     Text("Voltar ao ", color = Color.Gray)
-                    Text("Login", color = greenColor)
+                    Text("Login", color = greenColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

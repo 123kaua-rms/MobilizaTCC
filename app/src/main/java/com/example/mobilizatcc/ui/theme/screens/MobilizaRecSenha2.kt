@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -34,35 +35,37 @@ fun CodeVerificationScreen(
 ) {
     val greenColor = Color(0xFF3AAA35)
     val codeLength = 6
-    var code by remember { mutableStateOf(List(codeLength) { "" }) } // Lista de 6 dígitos
+    var code by remember { mutableStateOf(List(codeLength) { "" }) }
     var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    // FocusRequesters para cada campo
     val focusRequesters = List(codeLength) { FocusRequester() }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val maxWidth = maxWidth
 
-            // Cantos verdes decorativos
+            // Cantos verdes decorativos com tamanho adaptativo
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .size(width = 125.dp.coerceAtMost(maxWidth / 3), height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
             )
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .size(width = 125.dp.coerceAtMost(maxWidth / 3), height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(topStart = 16.dp))
                     .align(Alignment.BottomEnd)
             )
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(vertical = 16.dp)
+                    .align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -71,33 +74,38 @@ fun CodeVerificationScreen(
                     painter = painterResource(id = R.drawable.lock2),
                     contentDescription = "Cadeado",
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(80.dp)
+                    modifier = Modifier.size(if (maxWidth < 360.dp) 60.dp else 80.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
                     text = "Um código foi enviado ao seu e-mail!",
-                    fontSize = 18.sp,
+                    fontSize = if (maxWidth < 360.dp) 16.sp else 18.sp,
                     color = Color.Black,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Digite o código que enviamos para seu e-mail",
-                    fontSize = 14.sp,
+                    fontSize = if (maxWidth < 360.dp) 12.sp else 14.sp,
                     color = Color.Gray,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(29.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
+                    // Para centralizar os campos de código horizontalmente
+                    Spacer(modifier = Modifier.weight(1f))
                     for (i in 0 until codeLength) {
                         OutlinedTextField(
                             value = code[i],
@@ -106,7 +114,6 @@ fun CodeVerificationScreen(
                                     val newList = code.toMutableList()
                                     newList[i] = it
                                     code = newList
-                                    // Avança o foco automaticamente
                                     if (it.isNotEmpty() && i < codeLength - 1) {
                                         focusRequesters[i + 1].requestFocus()
                                     }
@@ -114,13 +121,13 @@ fun CodeVerificationScreen(
                             },
                             singleLine = true,
                             textStyle = LocalTextStyle.current.copy(
-                                fontSize = 20.sp,
+                                fontSize = if (maxWidth < 360.dp) 16.sp else 20.sp,
                                 textAlign = TextAlign.Center
                             ),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             visualTransformation = VisualTransformation.None,
                             modifier = Modifier
-                                .size(50.dp)
+                                .size(if (maxWidth < 360.dp) 40.dp else 50.dp)
                                 .focusRequester(focusRequesters[i]),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -134,12 +141,19 @@ fun CodeVerificationScreen(
                             )
                         )
                     }
+                    Spacer(modifier = Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (errorMessage.isNotEmpty()) {
-                    Text(errorMessage, color = Color.Red, fontSize = 14.sp)
+                    Text(
+                        errorMessage,
+                        color = Color.Red,
+                        fontSize = if (maxWidth < 360.dp) 12.sp else 14.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -159,7 +173,6 @@ fun CodeVerificationScreen(
 
                         val service = RetrofitFactory().getUsuarioService()
 
-                        // senha provisória para que o backend aceite o body na verificação
                         val request = ResetSenhaRequest(
                             email = email,
                             codigo = codigoInt,
@@ -188,7 +201,7 @@ fun CodeVerificationScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(if (maxWidth < 360.dp) 45.dp else 50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                     shape = RoundedCornerShape(8.dp),
                     enabled = !loading
@@ -198,4 +211,9 @@ fun CodeVerificationScreen(
             }
         }
     }
+}
+@Preview(showBackground = true)
+@Composable
+fun CodeVerificationScreenPreview() {
+    CodeVerificationScreen(navegacao = null, email = "teste@email.com")
 }

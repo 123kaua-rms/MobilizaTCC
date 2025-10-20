@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -26,18 +27,24 @@ fun SplashScreen(
     navegacao: NavHostController?,
     onTimeout: () -> Unit = {}
 ) {
-    val logoSizeDp = 300.dp
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+
+    // ✅ Logo será proporcional à largura da tela (ex: 50% da largura)
+    val logoSizeDp = screenWidth * 0.5f
+
     val density = LocalDensity.current
     val logoSizePx = with(density) { logoSizeDp.toPx() }
 
-    // ✅ Timer de 5 segundos para navegar automaticamente
+    // ⏳ Timer para ir para próxima tela
     LaunchedEffect(Unit) {
         delay(4000)
         navegacao?.navigate("welcome-2")
         onTimeout()
     }
 
-    // ✅ Animação infinita dos círculos
+    // 🔁 Animações infinitas dos círculos
     val infiniteTransition = rememberInfiniteTransition(label = "circleAnimation")
 
     val scale by infiniteTransition.animateFloat(
@@ -70,7 +77,7 @@ fun SplashScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // 🎞️ Círculos animados ao redor do logo
+            // 🎞️ Círculos animados ao redor do logo (também responsivos)
             Canvas(modifier = Modifier.size(logoSizeDp * 1.8f)) {
                 val center = Offset(size.width / 2, size.height / 2)
                 val baseRadius = logoSizePx / 2
@@ -91,7 +98,7 @@ fun SplashScreen(
                 }
             }
 
-            // 🟢 Logo central
+            // 🟢 Logo central responsivo
             Image(
                 painter = painterResource(id = R.drawable.logo_claro),
                 contentDescription = "Mobiliza Logo",

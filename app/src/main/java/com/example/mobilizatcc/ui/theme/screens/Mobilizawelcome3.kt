@@ -1,6 +1,5 @@
 package com.example.mobilizatcc.ui.theme.screens
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,11 +24,20 @@ import com.example.mobilizatcc.R
 @Composable
 fun MobilizaWelcome3(
     navegacao: NavHostController?,
-
     onNextClick: () -> Unit = {},
     onSkipClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF3AAA35)
+
+    // 📐 Pega dimensões da tela
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+
+    // 📊 Tamanhos responsivos
+    val horizontalPadding = screenWidth * 0.06f
+    val imageHeight = screenHeight * 0.35f
+    val nextButtonSize = screenWidth * 0.12f
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -37,22 +46,22 @@ fun MobilizaWelcome3(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = horizontalPadding, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Imagem central
+            // 🖼️ Imagem central responsiva
             Image(
-                painter = painterResource(id = R.drawable.relogio), // Altere para o ID correto da imagem
+                painter = painterResource(id = R.drawable.relogio),
                 contentDescription = "Imagem de relógio",
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
-                    .height(240.dp)
+                    .height(imageHeight)
             )
 
-            // Textos
+            // 📝 Textos
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "Saiba quando seu transporte chega",
@@ -71,7 +80,7 @@ fun MobilizaWelcome3(
                 )
             }
 
-            // Rodapé com indicadores e botões
+            // 🟢 Rodapé com indicadores e botões
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -81,27 +90,27 @@ fun MobilizaWelcome3(
                     Text(text = "Pular", color = Color.Gray)
                 }
 
-                // Indicadores
+                // 🔘 Indicadores (3 passos — este é o segundo ativo)
                 Row(horizontalArrangement = Arrangement.Center) {
-                    repeat(1) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color.LightGray)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                    }
+                    // 1ª bolinha (inativa)
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(Color.LightGray)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
 
+                    // 2ª bolinha (ativa)
                     Box(
                         modifier = Modifier
                             .size(width = 20.dp, height = 6.dp)
                             .clip(RoundedCornerShape(50))
                             .background(greenColor)
                     )
-
                     Spacer(modifier = Modifier.width(6.dp))
 
+                    // 3ª bolinha (inativa)
                     repeat(2) {
                         Box(
                             modifier = Modifier
@@ -113,13 +122,11 @@ fun MobilizaWelcome3(
                     }
                 }
 
-                // ✅ Botão circular que navega para "welcome4"
+                // ➡️ Botão circular responsivo
                 IconButton(
-                    onClick = {
-                        navegacao?.navigate("welcome-4")
-                    },
+                    onClick = { navegacao?.navigate("welcome-4") },
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(nextButtonSize)
                         .background(color = greenColor, shape = CircleShape)
                 ) {
                     Icon(

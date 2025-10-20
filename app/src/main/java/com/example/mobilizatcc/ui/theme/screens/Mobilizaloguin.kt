@@ -58,7 +58,10 @@ fun LoginScreen(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val maxWidth = maxWidth
 
             // Cantos verdes decorativos
             Box(
@@ -77,8 +80,11 @@ fun LoginScreen(
             // Conteúdo principal
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp),
+                    .fillMaxWidth()
+                    .padding(horizontal = if (maxWidth < 360.dp) 12.dp else 24.dp)
+                    .align(Alignment.Center)
+                    .defaultMinSize(minWidth = 280.dp)
+                    .wrapContentHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -86,10 +92,12 @@ fun LoginScreen(
                 Image(
                     painter = painterResource(id = R.drawable.logo_claro),
                     contentDescription = "Logo Mobiliza",
-                    modifier = Modifier.height(150.dp)
+                    modifier = Modifier
+                        .height(if (maxWidth < 360.dp) 120.dp else 150.dp)
+                        .fillMaxWidth(0.5f)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 12.dp else 16.dp))
 
                 Text(
                     text = buildAnnotatedString {
@@ -98,20 +106,23 @@ fun LoginScreen(
                             append("Mobiliza!")
                         }
                     },
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = if (maxWidth < 360.dp) 18.sp else 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 2.dp else 4.dp))
 
                 Text(
                     text = "Entre com seu email para acessar sua conta",
-                    fontSize = 14.sp,
+                    fontSize = if (maxWidth < 360.dp) 12.sp else 14.sp,
                     color = Color.Gray,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 20.dp else 28.dp))
 
                 // Campo Email / Nome de Usuário
                 OutlinedTextField(
@@ -137,7 +148,7 @@ fun LoginScreen(
                     isError = email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email).matches()
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 8.dp else 12.dp))
 
                 // Campo Senha com alternância de visibilidade
                 OutlinedTextField(
@@ -186,7 +197,7 @@ fun LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 16.dp else 24.dp))
 
                 // Botão ENTRAR (só habilita se form for válido)
                 Button(
@@ -230,7 +241,7 @@ fun LoginScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .height(if (maxWidth < 360.dp) 44.dp else 48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                     shape = RoundedCornerShape(8.dp),
                     enabled = !isLoading && isFormValid
@@ -272,7 +283,7 @@ fun LoginScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 16.dp else 24.dp))
 
                 // OU
                 Row(
@@ -284,14 +295,14 @@ fun LoginScreen(
                     Divider(modifier = Modifier.weight(1f), color = Color.LightGray)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 12.dp else 16.dp))
 
                 // Botão Google
                 OutlinedButton(
                     onClick = onGoogleClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .height(if (maxWidth < 360.dp) 44.dp else 48.dp),
                     shape = RoundedCornerShape(8.dp),
                     enabled = !isLoading
                 ) {
@@ -305,7 +316,7 @@ fun LoginScreen(
                     Text("Logue com Google", color = Color.Black)
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 16.dp else 20.dp))
 
                 // Link cadastro
                 TextButton(
@@ -319,6 +330,7 @@ fun LoginScreen(
         }
     }
 }
+
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable

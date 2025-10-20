@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -42,6 +43,15 @@ fun RegisterScreen(
 ) {
     val greenColor = Color(0xFF3AAA35)
     val context = LocalContext.current
+
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+
+    // Margens e espaçamentos adaptáveis
+    val horizontalPadding = (screenWidth * 0.06f).coerceAtLeast(16.dp)
+    val topSpacing = (screenHeight * 0.12f).coerceAtLeast(60.dp)
+    val fieldSpacing = (screenHeight * 0.02f).coerceAtLeast(12.dp)
 
     var nome by remember { mutableStateOf("") }
     var usuario by remember { mutableStateOf("") }
@@ -91,7 +101,6 @@ fun RegisterScreen(
     }
 
     // --- Layout principal ---
-
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
@@ -101,7 +110,8 @@ fun RegisterScreen(
             // Top bar decorativa
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .width(screenWidth * 0.33f)
+                    .height(screenHeight * 0.06f)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
             )
@@ -109,21 +119,20 @@ fun RegisterScreen(
             // Bottom bar decorativa
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .width(screenWidth * 0.33f)
+                    .height(screenHeight * 0.06f)
                     .background(greenColor, shape = RoundedCornerShape(topStart = 16.dp))
                     .align(Alignment.BottomEnd)
             )
 
-            // --- Conteúdo principal ---
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(horizontal = horizontalPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-
-                Spacer(modifier = Modifier.height(120.dp))
+                Spacer(modifier = Modifier.height(topSpacing))
 
                 Text(
                     text = buildAnnotatedString {
@@ -132,7 +141,7 @@ fun RegisterScreen(
                             append("Mobiliza!")
                         }
                     },
-                    fontSize = 22.sp,
+                    fontSize = (screenWidth.value * 0.06f).sp,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -140,14 +149,14 @@ fun RegisterScreen(
 
                 Text(
                     text = "Preencha seus dados para criar sua conta",
-                    fontSize = 14.sp,
+                    fontSize = (screenWidth.value * 0.035f).sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // --- Campo Nome Completo ---
+                // Nome
                 OutlinedTextField(
                     value = nome,
                     onValueChange = {
@@ -156,8 +165,7 @@ fun RegisterScreen(
                             it.isBlank() -> "O nome é obrigatório."
                             it.length < 2 -> "O nome deve ter pelo menos 2 caracteres."
                             it.length > 120 -> "O nome deve ter no máximo 120 caracteres."
-                            !it.matches(Regex("^[A-Za-zÀ-ÖØ-öø-ÿ ]+$")) ->
-                                "Use apenas letras e espaços."
+                            !it.matches(Regex("^[A-Za-zÀ-ÖØ-öø-ÿ ]+$")) -> "Use apenas letras e espaços."
                             else -> null
                         }
                     },
@@ -174,14 +182,13 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
                 if (nomeError != null) {
                     Text(text = nomeError!!, color = Color.Red, fontSize = 12.sp)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(fieldSpacing))
 
-                // --- Campo Usuário ---
+                // Usuário
                 OutlinedTextField(
                     value = usuario,
                     onValueChange = {
@@ -201,14 +208,13 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
                 if (usuarioError != null) {
                     Text(text = usuarioError!!, color = Color.Red, fontSize = 12.sp)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(fieldSpacing))
 
-                // --- Campo Email ---
+                // Email
                 OutlinedTextField(
                     value = email,
                     onValueChange = {
@@ -230,14 +236,13 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
                 if (emailError != null) {
                     Text(text = emailError!!, color = Color.Red, fontSize = 12.sp)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(fieldSpacing))
 
-                // --- Campo Senha ---
+                // Senha
                 OutlinedTextField(
                     value = senha,
                     onValueChange = {
@@ -268,14 +273,13 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
                 if (senhaError != null) {
                     Text(text = senhaError!!, color = Color.Red, fontSize = 12.sp)
                 }
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // --- Botão Cadastrar ---
+                // Botão cadastrar
                 val allValid = nomeError == null && usuarioError == null && emailError == null && senhaError == null &&
                         nome.isNotBlank() && usuario.isNotBlank() && email.isNotBlank() && senha.isNotBlank()
 
@@ -320,7 +324,7 @@ fun RegisterScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height((screenHeight * 0.065f).coerceAtLeast(45.dp)),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                     shape = RoundedCornerShape(10.dp),
                     enabled = allValid && !isLoading
@@ -345,7 +349,7 @@ fun RegisterScreen(
                     onClick = onGoogleClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .height((screenHeight * 0.06f).coerceAtLeast(45.dp)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Icon(

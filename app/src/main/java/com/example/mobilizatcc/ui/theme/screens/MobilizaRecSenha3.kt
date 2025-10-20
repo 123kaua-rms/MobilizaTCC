@@ -48,10 +48,8 @@ fun MobilizaRecSenha3(
     var loading by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Lista simulada de senhas já utilizadas
     val senhasJaUsadas = listOf("mobiliza123", "senha123", "12345678")
 
-    // Função que verifica força da senha
     fun avaliarForcaSenha(senha: String) {
         when {
             senha.length < 6 -> {
@@ -60,7 +58,7 @@ fun MobilizaRecSenha3(
             }
             senha.matches(Regex(".*[A-Z].*")) && senha.matches(Regex(".*[0-9].*")) && senha.length >= 8 -> {
                 passwordStrength = "Senha forte"
-                passwordStrengthColor = Color(0xFF3AAA35)
+                passwordStrengthColor = greenColor
             }
             senha.length >= 6 -> {
                 passwordStrength = "Senha média"
@@ -74,18 +72,28 @@ fun MobilizaRecSenha3(
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val maxWidth = maxWidth
+            val paddingHorizontal = if (maxWidth < 360.dp) 16.dp else 24.dp
+            val iconSize = if (maxWidth < 360.dp) 100.dp else 140.dp
+            val fontSizeTitle = if (maxWidth < 360.dp) 18.sp else 20.sp
+            val fontSizeStrength = if (maxWidth < 360.dp) 12.sp else 14.sp
+            val fieldHeight = if (maxWidth < 360.dp) 48.dp else 56.dp
+            val buttonHeight = if (maxWidth < 360.dp) 45.dp else 50.dp
+            val spacingSmall = if (maxWidth < 360.dp) 12.dp else 16.dp
+            val spacingMedium = if (maxWidth < 360.dp) 24.dp else 32.dp
+            val spacingLarge = if (maxWidth < 360.dp) 48.dp else 60.dp
 
             // Cantos verdes decorativos
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .size(width = 125.dp.coerceAtMost(maxWidth / 3), height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(bottomEnd = 16.dp))
                     .align(Alignment.TopStart)
             )
             Box(
                 modifier = Modifier
-                    .size(width = 125.dp, height = 45.dp)
+                    .size(width = 125.dp.coerceAtMost(maxWidth / 3), height = 45.dp)
                     .background(greenColor, shape = RoundedCornerShape(topStart = 16.dp))
                     .align(Alignment.BottomEnd)
             )
@@ -93,32 +101,31 @@ fun MobilizaRecSenha3(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(horizontal = paddingHorizontal),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-
-                Spacer(modifier = Modifier.height(60.dp))
+                Spacer(modifier = Modifier.height(spacingLarge))
 
                 Image(
                     painter = painterResource(id = R.drawable.logo_claro),
                     contentDescription = "Logo Mobiliza",
-                    modifier = Modifier.size(140.dp)
+                    modifier = Modifier.size(iconSize)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(spacingMedium))
 
                 Text(
                     text = "Digite sua nova senha",
-                    fontSize = 20.sp,
+                    fontSize = fontSizeTitle,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(spacingMedium))
 
-                // Campo nova senha
                 OutlinedTextField(
                     value = newPassword,
                     onValueChange = {
@@ -135,23 +142,24 @@ fun MobilizaRecSenha3(
                             Icon(icon, contentDescription = "Mostrar senha")
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(fieldHeight)
                 )
 
-                // Indicador de força da senha
                 if (passwordStrength.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = passwordStrength,
                         color = passwordStrengthColor,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        fontSize = fontSizeStrength,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacingSmall))
 
-                // Campo confirmação de senha
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
@@ -165,12 +173,13 @@ fun MobilizaRecSenha3(
                             Icon(icon, contentDescription = "Mostrar confirmação")
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(fieldHeight)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(spacingMedium))
 
-                // Botão Enviar
                 Button(
                     onClick = {
                         when {
@@ -209,9 +218,12 @@ fun MobilizaRecSenha3(
                             }
                         })
                     },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(buttonHeight),
                     colors = ButtonDefaults.buttonColors(containerColor = greenColor),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    enabled = !loading
                 ) {
                     Text(if (loading) "Enviando..." else "Enviar", color = Color.White)
                 }
@@ -219,6 +231,7 @@ fun MobilizaRecSenha3(
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

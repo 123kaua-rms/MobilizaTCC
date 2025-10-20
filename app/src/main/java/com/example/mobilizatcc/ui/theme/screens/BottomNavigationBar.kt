@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
 
@@ -20,43 +21,72 @@ fun BottomNavigationBar(
     navegacao: NavHostController?,
     selectedRoute: String = "home"
 ) {
-    Row(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 8.dp)
     ) {
-        BottomMenuItem(
-            iconId = R.drawable.home,
-            label = "Início",
-            selected = selectedRoute == "home",
-            onClick = { navegacao?.navigate("home") }
-        )
-        BottomMenuItem(
-            iconId = R.drawable.linhas,
-            label = "Linhas",
-            selected = selectedRoute == "linhas",
-            onClick = { navegacao?.navigate("linhas") }
-        )
-        BottomMenuItem(
-            iconId = R.drawable.feedback,
-            label = "Feedback",
-            selected = selectedRoute == "feedback",
-            onClick = { navegacao?.navigate("feedback") }
-        )
-        BottomMenuItem(
-            iconId = R.drawable.telaperfil,
-            label = "Perfil",
-            selected = selectedRoute == "perfil",
-            onClick = { navegacao?.navigate("perfil") }
-        )
+        val maxWidthDp = maxWidth
+        val iconSize = if (maxWidthDp < 360.dp) 20.dp else 24.dp
+        val fontSize = if (maxWidthDp < 360.dp) 10.sp else 12.sp
+        val spacerHeight = if (maxWidthDp < 360.dp) 2.dp else 4.dp
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BottomMenuItem(
+                iconId = R.drawable.home,
+                label = "Início",
+                selected = selectedRoute == "home",
+                onClick = { navegacao?.navigate("home") },
+                iconSize = iconSize,
+                fontSize = fontSize,
+                spacerHeight = spacerHeight
+            )
+            BottomMenuItem(
+                iconId = R.drawable.linhas,
+                label = "Linhas",
+                selected = selectedRoute == "linhas",
+                onClick = { navegacao?.navigate("linhas") },
+                iconSize = iconSize,
+                fontSize = fontSize,
+                spacerHeight = spacerHeight
+            )
+            BottomMenuItem(
+                iconId = R.drawable.feedback,
+                label = "Feedback",
+                selected = selectedRoute == "feedback",
+                onClick = { navegacao?.navigate("feedback") },
+                iconSize = iconSize,
+                fontSize = fontSize,
+                spacerHeight = spacerHeight
+            )
+            BottomMenuItem(
+                iconId = R.drawable.telaperfil,
+                label = "Perfil",
+                selected = selectedRoute == "perfil",
+                onClick = { navegacao?.navigate("perfil") },
+                iconSize = iconSize,
+                fontSize = fontSize,
+                spacerHeight = spacerHeight
+            )
+        }
     }
 }
 
 @Composable
-fun BottomMenuItem(iconId: Int, label: String, selected: Boolean, onClick: () -> Unit) {
+fun BottomMenuItem(
+    iconId: Int,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    iconSize: Dp,
+    fontSize: androidx.compose.ui.unit.TextUnit,
+    spacerHeight: Dp
+) {
     val greenColor = Color(0xFF3AAA35)
     val grayColor = Color(0xFF9E9E9E)
 
@@ -68,12 +98,12 @@ fun BottomMenuItem(iconId: Int, label: String, selected: Boolean, onClick: () ->
             painter = painterResource(id = iconId),
             contentDescription = label,
             tint = if (selected) greenColor else grayColor,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(iconSize)
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(spacerHeight))
         Text(
             text = label,
-            fontSize = 12.sp,
+            fontSize = fontSize,
             color = if (selected) greenColor else grayColor
         )
     }
