@@ -32,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.BusLineResponse
 import com.example.mobilizatcc.viewmodel.LinesViewModel
+import kotlin.random.Random
 
 @Composable
 fun LinesScreen(
@@ -47,11 +48,15 @@ fun LinesScreen(
 
     LaunchedEffect(Unit) { viewModel.fetchLines() }
 
+    // 🔹 Linhas filtradas OU aleatórias se a busca estiver vazia
     val filteredLines = remember(lines, searchQuery) {
-        if (searchQuery.isBlank()) lines
-        else lines.filter {
-            it.routeShortName.contains(searchQuery, ignoreCase = true) ||
-                    (it.routeLongName?.contains(searchQuery, ignoreCase = true) ?: false)
+        if (searchQuery.isBlank()) {
+            lines.shuffled(Random(System.currentTimeMillis())).take(8)
+        } else {
+            lines.filter {
+                it.routeShortName.contains(searchQuery, ignoreCase = true) ||
+                        (it.routeLongName?.contains(searchQuery, ignoreCase = true) ?: false)
+            }
         }
     }
 
@@ -106,7 +111,7 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
     val longName = line.routeLongName ?: ""
     val parts = longName.split("-").map { it.trim() }.filter { it.isNotEmpty() }
     val origem = parts.getOrNull(0) ?: "Origem desconhecida"
-    val destino = parts.getOrNull(1) ?: "Destino desconhecido"
+    val destino = parts.getOrNull(1) ?: "Destino desconhecida"
 
     val lineColor = try {
         if (!line.routeColor.isNullOrBlank()) {
@@ -131,7 +136,7 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
         ) {
             Column(
                 modifier = Modifier
-                    .weight(0.2f) // substitui largura fixa por peso para responsividade
+                    .width(65.dp)
                     .clip(RoundedCornerShape(6.dp))
                     .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(6.dp))
                     .background(Color.White),
@@ -146,26 +151,26 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
                         imageVector = Icons.Filled.DirectionsBus,
                         contentDescription = "Ícone de ônibus",
                         tint = Color.DarkGray,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(3.dp))
                     Text(
                         text = line.routeShortName,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
+                        fontSize = 11.sp,
                         color = Color.Black
                     )
                 }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp)
+                        .height(3.dp)
                         .background(lineColor)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(
-                modifier = Modifier.weight(0.8f) // resto do espaço para texto
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = origem,
@@ -194,7 +199,6 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
     }
 }
 
-
 @Composable
 fun Header() {
     Box(
@@ -218,8 +222,7 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp) // 🔹 centralização igual à imagem
-            .height(42.dp),
+            .height(46.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -237,16 +240,16 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
                     Text(
                         text = "Pesquise por uma linha",
                         color = Color.Gray,
-                        fontSize = 8.sp
+                        fontSize = 13.sp
                     )
                 },
                 modifier = Modifier
                     .weight(2f)
                     .fillMaxHeight()
-                    .padding(horizontal = 12.dp),
+                    .padding(start = 12.dp),
                 singleLine = true,
                 maxLines = 1,
-                textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
+                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -258,17 +261,17 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
             )
             Box(
                 modifier = Modifier
-                    .width(42.dp)
+                    .width(46.dp)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
-                    .background(Color(0xFF26A65B)), // 🔹 verde igual ao da imagem
+                    .background(Color(0xFF26A65B)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Buscar",
                     tint = Color.White,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
@@ -328,7 +331,6 @@ fun TransportTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit, tabs: Lis
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
