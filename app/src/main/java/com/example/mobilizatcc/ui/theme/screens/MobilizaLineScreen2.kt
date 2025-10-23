@@ -1,6 +1,9 @@
 package com.example.mobilizatcc.ui.theme.screens
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -44,14 +47,14 @@ fun LinhaTracadoScreen(
         color = Color.White
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
+
             // ---------- CABEÇALHO ----------
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Ícone perfil
                 Image(
@@ -61,38 +64,56 @@ fun LinhaTracadoScreen(
                         .size(40.dp)
                         .clip(CircleShape)
                 )
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Número da linha
-                Box(
-                    modifier = Modifier
-                        .background(Color.White, RoundedCornerShape(8.dp))
-                        .border(1.dp, grayLine, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                // Linha com ícone de voltar e estrela
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.onibus),
-                            contentDescription = "Ônibus",
-                            tint = Color.Black,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = routeShortName, // Mostra a linha clicada
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
+                    // Ícone de voltar
+                    Icon(
+                        painter = painterResource(id = R.drawable.ss),
+                        contentDescription = "Voltar",
+                        tint = greenColor,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable { navegacao?.navigate("linhas") }
+                    )
 
-                // Ícone estrela
-                Icon(
-                    painter = painterResource(id = R.drawable.star),
-                    contentDescription = "Favoritar",
-                    tint = Color(0xFF9E9E9E),
-                    modifier = Modifier.size(24.dp)
-                )
+                    // Número da linha
+                    Box(
+                        modifier = Modifier
+                            .background(Color.White, RoundedCornerShape(8.dp))
+                            .border(1.dp, grayLine, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.onibus),
+                                contentDescription = "Ônibus",
+                                tint = Color.Black,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = routeShortName,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+
+                    // Ícone estrela
+                    Icon(
+                        painter = painterResource(id = R.drawable.star),
+                        contentDescription = "Favoritar",
+                        tint = Color(0xFF9E9E9E),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             // ---------- BLOCO VERDE ----------
@@ -102,9 +123,7 @@ fun LinhaTracadoScreen(
                     .background(greenColor)
                     .padding(vertical = 14.dp, horizontal = 20.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         painter = painterResource(id = R.drawable.sentido),
                         contentDescription = "Sentido",
@@ -161,10 +180,7 @@ fun LinhaTracadoScreen(
             ) {
                 items(paradas.size) { index ->
                     val parada = paradas[index]
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Linha e bolinha
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.padding(end = 12.dp)
@@ -249,7 +265,6 @@ fun LinhaTracadoScreen(
         }
     }
 }
-
 
 @Composable
 fun BottomMenuItem(iconId: Int, label: String, selected: Boolean) {
