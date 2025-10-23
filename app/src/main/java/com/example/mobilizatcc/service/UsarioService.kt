@@ -31,5 +31,6 @@ interface UsuarioService {
     suspend fun getAllLines(): LinesApiResponse
 
     @GET("linhas/{id}")
-    suspend fun getLineById(@Path("id") id: String): BusLineResponse
+    suspend fun getLineById(@Path("id") id: String): BusLineDetailResponse
+
 }

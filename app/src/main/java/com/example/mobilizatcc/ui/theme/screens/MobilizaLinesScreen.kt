@@ -125,7 +125,6 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                // Navega para LinhaTracadoScreen passando routeId e routeShortName
                 navegacao?.navigate("linha-tracado/${line.routeId}/${line.routeShortName}")
             }
     ) {
@@ -173,17 +172,11 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+                // Agora origem e destino aparecem na mesma linha em cinza
                 Text(
-                    text = origem,
+                    text = "$origem - $destino",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = destino,
-                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
                     color = Color.Gray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -199,7 +192,6 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
         )
     }
 }
-
 @Composable
 fun Header() {
     Box(
@@ -223,7 +215,7 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(46.dp),
+            .height(52.dp), // Aumentado para não cortar as letras
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -241,16 +233,15 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
                     Text(
                         text = "Pesquise por uma linha",
                         color = Color.Gray,
-                        fontSize = 13.sp
+                        fontSize = 14.sp
                     )
                 },
                 modifier = Modifier
-                    .weight(2f)
-                    .fillMaxHeight()
-                    .padding(start = 12.dp),
+                    .weight(1f)
+                    .padding(start = 12.dp, end = 8.dp),
                 singleLine = true,
                 maxLines = 1,
-                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
+                textStyle = LocalTextStyle.current.copy(fontSize = 15.sp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -262,8 +253,8 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
             )
             Box(
                 modifier = Modifier
-                    .width(46.dp)
-                    .fillMaxHeight()
+                    .width(48.dp)
+                    .height(52.dp)
                     .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
                     .background(Color(0xFF26A65B)),
                 contentAlignment = Alignment.Center
@@ -272,13 +263,12 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
                     imageVector = Icons.Default.Search,
                     contentDescription = "Buscar",
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }
     }
 }
-
 @Composable
 fun TransportTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit, tabs: List<String>) {
     Row(

@@ -23,25 +23,23 @@ class MainActivity : ComponentActivity() {
                     startDestination = "linhas"
                 ) {
 
-                    // Onboarding / Welcome screens
+                    // ---------- Onboarding / Welcome ----------
                     composable("welcome-1") { SplashScreen(navegacao) }
                     composable("welcome-2") { OnboardingScreen1(navegacao) }
                     composable("welcome-3") { MobilizaWelcome3(navegacao) }
                     composable("welcome-4") { MobilizaWelcome4(navegacao) }
                     composable("welcome-5") { OnboardingScreen5(navegacao) }
 
-                    // Registro / Login
+                    // ---------- Registro / Login ----------
                     composable("cadastro") { RegisterScreen(navegacao) }
                     composable("cadastro-google") { FinalRegisterScreen(navegacao) }
                     composable("loguin") { LoginScreen(navegacao) }
 
-                    // Home
+                    // ---------- Home ----------
                     composable("home") { MobilizaHomeScreen(navegacao) }
 
-                    // Recuperar senha - Tela 1 (início)
+                    // ---------- Recuperar senha ----------
                     composable("recsenha1") { RecSenhaScreen(navegacao) }
-
-                    // Recuperar senha - Tela 2 (verificação de código)
                     composable(
                         route = "recsenha2/{email}",
                         arguments = listOf(navArgument("email") { type = NavType.StringType })
@@ -49,8 +47,6 @@ class MainActivity : ComponentActivity() {
                         val email = backStackEntry.arguments?.getString("email") ?: ""
                         CodeVerificationScreen(navegacao, email)
                     }
-
-                    // Recuperar senha - Tela 3 (resetar senha)
                     composable(
                         route = "recsenha3/{email}/{codigo}",
                         arguments = listOf(
@@ -63,10 +59,10 @@ class MainActivity : ComponentActivity() {
                         MobilizaRecSenha3(navegacao, email, codigo)
                     }
 
-                    // Linhas
+                    // ---------- Linhas ----------
                     composable("linhas") { LinesScreen(navegacao) }
 
-                    // Linha Tracado (recebe parâmetros)
+                    // ---------- Linha Tracado ----------
                     composable(
                         route = "linha-tracado/{routeId}/{routeShortName}",
                         arguments = listOf(
@@ -78,6 +74,15 @@ class MainActivity : ComponentActivity() {
                         val routeShortName = backStackEntry.arguments?.getString("routeShortName") ?: ""
                         LinhaTracadoScreen(navegacao, routeId, routeShortName)
                     }
+
+                    // ---------- Chat ----------
+                    composable("chat") { ChatScreen(navegacao) }
+
+                    // ---------- Feedback ----------
+                    // composable("feedback") { FeedbackScreen(navegacao) }
+
+                    // ---------- Perfil ----------
+                    // composable("perfil") { PerfilScreen(navegacao) }
                 }
             }
         }
