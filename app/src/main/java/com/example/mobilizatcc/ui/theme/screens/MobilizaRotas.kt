@@ -213,7 +213,7 @@ fun RotaItem(tempo: String, linhas: List<String>, duracao: String) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.onibus2),
+                    painter = painterResource(id = R.drawable.onibus),
                     contentDescription = "Rota",
                     tint = Color(0xFF424242),
                     modifier = Modifier.size(24.dp)

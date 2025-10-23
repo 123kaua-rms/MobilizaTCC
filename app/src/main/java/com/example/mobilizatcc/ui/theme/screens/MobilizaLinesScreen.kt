@@ -125,7 +125,8 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                navegacao?.navigate("stops/${line.routeId}")
+                // Navega para LinhaTracadoScreen passando routeId e routeShortName
+                navegacao?.navigate("linha-tracado/${line.routeId}/${line.routeShortName}")
             }
     ) {
         Row(

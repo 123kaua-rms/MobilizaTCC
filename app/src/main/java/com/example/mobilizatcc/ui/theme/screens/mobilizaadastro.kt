@@ -173,7 +173,7 @@ fun RegisterScreen(
                     label = { Text("Nome completo") },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.user),
+                            painter = painterResource(id = R.drawable.userr),
                             contentDescription = "Nome",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(20.dp)
@@ -199,7 +199,7 @@ fun RegisterScreen(
                     label = { Text("Nome de usuário") },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.user),
+                            painter = painterResource(id = R.drawable.userr),
                             contentDescription = "Usuário",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(20.dp)

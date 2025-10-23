@@ -95,7 +95,7 @@ fun FinalRegisterScreen(navegacao: NavHostController?,
                     placeholder = { Text("Digite seu nome de usuário") },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.user),
+                            painter = painterResource(id = R.drawable.userr),
                             contentDescription = "Usuário",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(22.dp) // um pouco maior
