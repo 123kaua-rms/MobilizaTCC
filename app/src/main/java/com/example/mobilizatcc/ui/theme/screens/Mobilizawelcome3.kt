@@ -27,7 +27,7 @@ fun MobilizaWelcome3(
     onNextClick: () -> Unit = {},
     onSkipClick: () -> Unit = {}
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
 
     // 📐 Pega dimensões da tela
     val configuration = LocalConfiguration.current

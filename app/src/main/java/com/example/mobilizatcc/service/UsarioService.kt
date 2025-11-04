@@ -30,7 +30,11 @@ interface UsuarioService {
     @GET("linhas")
     suspend fun getAllLines(): LinesApiResponse
 
-    @GET("linhas/{id}")
-    suspend fun getLineById(@Path("id") id: String): BusLineDetailResponse
+    @GET("sentidos/{trip_id}/ida")
+    suspend fun getParadasIda(@Path("trip_id") tripId: String): SentidoResponse
+
+    @GET("sentidos/{trip_id}/volta")
+    suspend fun getParadasVolta(@Path("trip_id") tripId: String): SentidoResponse
+
 
 }

@@ -38,7 +38,7 @@ fun RotasScreen(navegacao: NavHostController?) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        Color(0xFF3AAA35),
+                        Color(0xFF16A34A),
                         shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
                     )
                     .padding(16.dp)
@@ -135,7 +135,7 @@ fun RotasScreen(navegacao: NavHostController?) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.lupa),
                                             contentDescription = "Pesquisar",
-                                            tint = Color(0xFF3AAA35),
+                                            tint = Color(0xFF16A34A),
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
@@ -278,7 +278,7 @@ fun RotaItem(tempo: String, linhas: List<String>, duracao: String) {
             text = "Detalhes",
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF3AAA35)
+            color = Color(0xFF16A34A)
         )
 
         Spacer(modifier = Modifier.height(8.dp))

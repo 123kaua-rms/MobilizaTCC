@@ -2,12 +2,20 @@ package com.example.mobilizatcc.model
 
 import com.google.gson.annotations.SerializedName
 
+
+
 data class Stop(
-    @SerializedName("stop_id") val stopId: String,
-    @SerializedName("stop_name") val stopName: String,
-    @SerializedName("stop_desc") val stopDesc: String,
-    @SerializedName("stop_lat") val stopLat: String,
-    @SerializedName("stop_lon") val stopLon: String
+    @SerializedName("stop_id")
+    val stopId: String? = null,
+
+    @SerializedName("stop_name")
+    val stopName: String? = null,
+
+    @SerializedName("stop_lat")
+    val stopLat: String? = null,
+
+    @SerializedName("stop_lon")
+    val stopLon: String? = null
 )
 
 data class BusLineDetailResponse(

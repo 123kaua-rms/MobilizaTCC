@@ -25,7 +25,7 @@ fun FinalRegisterScreen(navegacao: NavHostController?,
                         onGoogleClick: () -> Unit = {},
                         onLoginClick: () -> Unit = {}
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
 
     var usuario by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }

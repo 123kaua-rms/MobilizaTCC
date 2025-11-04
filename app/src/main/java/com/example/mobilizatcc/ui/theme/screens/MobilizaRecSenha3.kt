@@ -38,7 +38,7 @@ fun MobilizaRecSenha3(
     email: String,
     codigo: Int
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }

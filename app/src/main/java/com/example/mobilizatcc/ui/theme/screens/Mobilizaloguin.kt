@@ -41,7 +41,7 @@ fun LoginScreen(
     navegacao: NavHostController?,
     onGoogleClick: () -> Unit = {}
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
 
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }

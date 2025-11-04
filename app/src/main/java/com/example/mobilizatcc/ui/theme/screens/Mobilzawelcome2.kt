@@ -25,7 +25,7 @@ import com.example.mobilizatcc.R
 fun OnboardingScreen1(
     navegacao: NavHostController?
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
 
     // 📐 Pega dimensões da tela
     val configuration = LocalConfiguration.current

@@ -31,7 +31,7 @@ import retrofit2.Response
 fun RecSenhaScreen(
     navegacao: NavHostController?
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
     var email by remember { mutableStateOf("") }
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }

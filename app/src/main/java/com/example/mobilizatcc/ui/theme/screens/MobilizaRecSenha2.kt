@@ -33,7 +33,7 @@ fun CodeVerificationScreen(
     navegacao: NavHostController?,
     email: String
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
     val codeLength = 6
     var code by remember { mutableStateOf(List(codeLength) { "" }) }
     var loading by remember { mutableStateOf(false) }

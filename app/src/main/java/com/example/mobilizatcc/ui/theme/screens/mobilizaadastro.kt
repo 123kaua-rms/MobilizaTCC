@@ -41,7 +41,7 @@ fun RegisterScreen(
     navegacao: NavHostController? = null,
     onGoogleClick: () -> Unit = {}
 ) {
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
     val context = LocalContext.current
 
     val configuration = LocalConfiguration.current

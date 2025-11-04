@@ -45,6 +45,8 @@ fun LinesScreen(
 
     val lines by viewModel.lines.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val greenColor = Color(0xFF16A34A)
+
 
     LaunchedEffect(Unit) { viewModel.fetchLines() }
 
@@ -87,7 +89,8 @@ fun LinesScreen(
 
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFF4CAF50))
+                        CircularProgressIndicator(color = greenColor,)
+
                     }
                 } else {
                     LazyColumn(
@@ -116,9 +119,9 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
     val lineColor = try {
         if (!line.routeColor.isNullOrBlank()) {
             Color(android.graphics.Color.parseColor("#${line.routeColor}"))
-        } else Color(0xFF4CAF50)
+        } else Color(0xFF16A34A)
     } catch (e: Exception) {
-        Color(0xFF4CAF50)
+        Color(0xFF16A34A)
     }
 
     Column(
@@ -248,7 +251,7 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
                     disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = Color(0xFF4CAF50)
+                    cursorColor = Color(0xFF16A34A)
                 )
             )
             Box(
@@ -256,7 +259,7 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
                     .width(48.dp)
                     .height(52.dp)
                     .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
-                    .background(Color(0xFF26A65B)),
+                    .background(Color(0xFF16A34A)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
