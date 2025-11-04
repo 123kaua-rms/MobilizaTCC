@@ -78,6 +78,18 @@ class MainActivity : ComponentActivity() {
                     // ---------- Chat ----------
                     composable("chat") { ChatScreen(navegacao) }
 
+                    // ---------- Linha Detalhes ----------
+                    composable(
+                        route = "gradehoraria/{linhaCodigo}",
+                        arguments = listOf(
+                            navArgument("linhaCodigo") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val linhaCodigo = backStackEntry.arguments?.getString("linhaCodigo") ?: ""
+                        LinhaDetalhesScreen(navegacao, linhaCodigo)
+                    }
+
+
                     // ---------- Feedback ----------
                     // composable("feedback") { FeedbackScreen(navegacao) }
 

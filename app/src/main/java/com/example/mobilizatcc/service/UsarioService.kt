@@ -7,6 +7,8 @@ import retrofit2.http.*
 
 interface UsuarioService {
 
+    // ========================= USUÁRIO =========================
+
     @Headers("Content-Type: application/json")
     @POST("usuario")
     fun registerUser(@Body usuario: UsuarioRequest): Call<UsuarioResponse>
@@ -27,6 +29,8 @@ interface UsuarioService {
     @POST("usuario/resetar-senha")
     fun resetarSenha(@Body body: ResetSenhaRequest): Call<Void>
 
+    // ========================= LINHAS / SENTIDOS =========================
+
     @GET("linhas")
     suspend fun getAllLines(): LinesApiResponse
 
@@ -36,5 +40,10 @@ interface UsuarioService {
     @GET("sentidos/{trip_id}/volta")
     suspend fun getParadasVolta(@Path("trip_id") tripId: String): SentidoResponse
 
+    // ========================= FREQUÊNCIAS =========================
 
+    @GET("frequencias/{linha}-0")
+    suspend fun getFrequencias(
+        @Path("linha") linha: String
+    ): FrequenciaResponse
 }

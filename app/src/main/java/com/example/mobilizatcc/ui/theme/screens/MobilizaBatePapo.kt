@@ -28,6 +28,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.R
 
+data class ChatMessage(
+    val username: String,
+    val message: String,
+    val time: String,
+    val isCurrentUser: Boolean
+)
+
+
 @Composable
 fun ChatScreen(navegacao: NavHostController?) {
     var messageText by remember { mutableStateOf("") }
@@ -92,25 +100,47 @@ fun ChatScreen(navegacao: NavHostController?) {
                 color = Color.Black
             )
 
+            // Lista de mensagens simulada
+            val messages = listOf(
+                ChatMessage(
+                    username = "Username",
+                    message = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+                    time = "00:00",
+                    isCurrentUser = false
+                ),
+                ChatMessage(
+                    username = "Username",
+                    message = "Lorem ipsum dolor sit amet",
+                    time = "00:00",
+                    isCurrentUser = false
+                ),
+                ChatMessage(
+                    username = "Você",
+                    message = "Lorem ipsum dolor sit amet",
+                    time = "00:00",
+                    isCurrentUser = true
+                )
+            )
+
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(3) { index ->
+                items(messages.size) { index ->
+                    val msg = messages[index]
                     ChatMessageItem(
-                        username = "Username",
-                        message = when (index) {
-                            0 -> "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt"
-                            1 -> "Lorem ipsum dolor sit amet"
-                            else -> "Lorem ipsum dolor sit amet"
-                        },
-                        time = "00:00"
+                        username = msg.username,
+                        message = msg.message,
+                        time = msg.time,
+                        isCurrentUser = msg.isCurrentUser
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
+
+
 
             Box(
                 modifier = Modifier
@@ -176,65 +206,74 @@ fun ChatScreen(navegacao: NavHostController?) {
 
 
 @Composable
-fun ChatMessageItem(username: String, message: String, time: String) {
+fun ChatMessageItem(username: String, message: String, time: String, isCurrentUser: Boolean) {
+    val alignment = if (isCurrentUser) Alignment.End else Alignment.Start
+    val backgroundColor = if (isCurrentUser) Color(0xFFDFFFD6) else Color.White
+    val textColor = if (isCurrentUser) Color.Black else Color.Black
+
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White, shape = RoundedCornerShape(8.dp))
-            .border(0.dp, Color.Transparent, RoundedCornerShape(8.dp))
-            .padding(bottom = 4.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = alignment
     ) {
-        // Faixa verde com o nome do usuário e o horário
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF16A34A))
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .widthIn(max = 280.dp)
+                .background(backgroundColor, RoundedCornerShape(8.dp))
+                .border(0.dp, Color.Transparent, RoundedCornerShape(8.dp))
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.perfilcinza),
-                contentDescription = "Usuário",
+            // Cabeçalho verde com usuário e hora
+            Row(
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-            )
+                    .fillMaxWidth()
+                    .background(Color(0xFF16A34A))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.perfilcinza),
+                    contentDescription = "Usuário",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                )
 
-            Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
-            Text(
-                text = username,
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal
-            )
+                Text(
+                    text = username,
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal
+                )
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(1f))
 
-            Text(
-                text = time,
-                color = Color.White,
-                fontSize = 11.sp
-            )
-        }
+                Text(
+                    text = time,
+                    color = Color.White,
+                    fontSize = 11.sp
+                )
+            }
 
-        // Corpo da mensagem
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF8F8F8))
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = message,
-                color = Color.Black,
-                fontSize = 13.sp,
-                modifier = Modifier.weight(1f)
-            )
+            // Corpo da mensagem
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF8F8F8))
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = message,
+                    color = textColor,
+                    fontSize = 13.sp
+                )
+            }
         }
     }
 }
+
 
 
 @Preview(showBackground = true)
@@ -242,4 +281,3 @@ fun ChatMessageItem(username: String, message: String, time: String) {
 fun ChatScreenPreview() {
     ChatScreen(navegacao = rememberNavController())
 }
-

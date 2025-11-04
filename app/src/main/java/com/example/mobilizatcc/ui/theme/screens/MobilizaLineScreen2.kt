@@ -31,10 +31,12 @@ fun LinhaTracadoScreen(
     val greenColor = Color(0xFF16A34A)
     val orangeColor = Color(0xFFF5A623)
     val blueColor = Color(0xFF1976D2)
-    val grayLine = Color(0xFFE0E0E0)
+    val grayLine = Color(0xFFD6D6D6)
 
     val paradas by viewModel.paradas.collectAsState()
     val sentido by viewModel.sentido.collectAsState()
+
+    var paradaSelecionada by remember { mutableStateOf(-1) }
 
     LaunchedEffect(routeId) {
         if (routeId.isNotEmpty()) {
@@ -60,9 +62,8 @@ fun LinhaTracadoScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 🧍 Ícone de usuário personalizado
                 Image(
-                    painter = painterResource(id = R.drawable.perfilcinza), // 🔸 substitua pelo nome da sua imagem
+                    painter = painterResource(id = R.drawable.perfilcinza),
                     contentDescription = "Usuário",
                     modifier = Modifier
                         .size(34.dp)
@@ -72,7 +73,7 @@ fun LinhaTracadoScreen(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            // 🔹 Linha com voltar / número do ônibus / favorito (acima do verde)
+            // 🔹 Linha com voltar / número do ônibus / favorito
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -80,11 +81,10 @@ fun LinhaTracadoScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 🔙 Seta de voltar (agora cinza)
                 Icon(
                     painter = painterResource(id = R.drawable.seta),
                     contentDescription = "Voltar",
-                    tint = Color.Gray, // 🔸 alterado para cinza
+                    tint = Color.Gray,
                     modifier = Modifier
                         .size(26.dp)
                         .clickable { navegacao.navigateUp() }
@@ -113,25 +113,22 @@ fun LinhaTracadoScreen(
                     }
                 }
 
-                // ⭐ Ícone de favorito personalizado
                 Image(
-                    painter = painterResource(id = R.drawable.star), // 🔸 substitua pelo nome da sua imagem
+                    painter = painterResource(id = R.drawable.star),
                     contentDescription = "Favoritar",
                     modifier = Modifier
                         .size(30.dp)
-                        .clickable { /* ação de favoritar se desejar */ }
+                        .clickable { /* ação de favoritar */ }
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔹 Área verde com apenas o sentido
+            // 🔹 Área verde com o sentido
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        color = greenColor,
-                    )
+                    .background(color = greenColor)
                     .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 Column(
@@ -179,20 +176,20 @@ fun LinhaTracadoScreen(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.chat),
                         contentDescription = "Chat",
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Fale com outros passageiros",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         maxLines = 1
                     )
                 }
@@ -200,32 +197,32 @@ fun LinhaTracadoScreen(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
-                    onClick = { navegacao.navigate("gradehoraria") },
+                    onClick = { navegacao.navigate("gradehoraria/$routeShortName") },
                     colors = ButtonDefaults.buttonColors(containerColor = blueColor),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .weight(0.7f)
-                        .height(44.dp)
+                        .height(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.relogio),
                         contentDescription = "Grade horária",
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Grade horária",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
+                        fontSize = 12.sp
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 Lista de paradas com bolinhas e linha
+            // 🔹 Lista de paradas
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -234,7 +231,9 @@ fun LinhaTracadoScreen(
                 itemsIndexed(paradas) { index, parada ->
                     Row(
                         verticalAlignment = Alignment.Top,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { paradaSelecionada = index }
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -244,7 +243,8 @@ fun LinhaTracadoScreen(
                                 modifier = Modifier
                                     .size(12.dp)
                                     .background(
-                                        color = if (index == 0) greenColor else Color.LightGray,
+                                        color = if (index <= paradaSelecionada && paradaSelecionada != -1)
+                                            greenColor else grayLine,
                                         shape = CircleShape
                                     )
                             )
@@ -252,9 +252,10 @@ fun LinhaTracadoScreen(
                                 Box(
                                     modifier = Modifier
                                         .width(2.dp)
-                                        .height(40.dp)
+                                        .height(44.dp)
                                         .background(
-                                            color = if (index == 0) greenColor else Color.LightGray
+                                            color = if (index < paradaSelecionada && paradaSelecionada != -1)
+                                                greenColor else grayLine
                                         )
                                 )
                             }
@@ -269,7 +270,7 @@ fun LinhaTracadoScreen(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -278,5 +279,4 @@ fun LinhaTracadoScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun LinhaTracadoScreenPreview() {
-}
+fun LinhaTracadoScreenPreview() {}
