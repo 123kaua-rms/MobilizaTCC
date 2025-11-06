@@ -207,7 +207,8 @@ fun Header() {
             painter = painterResource(id = R.drawable.perfilcinza),
             contentDescription = "Usuário",
             modifier = Modifier
-                .size(32.dp)
+                .padding(start = 12.dp, top = 11.dp)
+                .size(40.dp)
                 .clip(CircleShape)
         )
     }

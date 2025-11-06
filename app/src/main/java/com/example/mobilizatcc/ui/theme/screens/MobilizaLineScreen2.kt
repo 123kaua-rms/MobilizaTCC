@@ -66,7 +66,8 @@ fun LinhaTracadoScreen(
                     painter = painterResource(id = R.drawable.perfilcinza),
                     contentDescription = "Usuário",
                     modifier = Modifier
-                        .size(34.dp)
+                        .padding(start = 15.dp, top = 11.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .clickable { navegacao.navigate("perfil") }
                 )

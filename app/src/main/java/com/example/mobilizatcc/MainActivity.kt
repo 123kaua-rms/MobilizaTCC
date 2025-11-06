@@ -18,6 +18,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MobilizaTCCTheme {
                 val navegacao = rememberNavController()
+
                 NavHost(
                     navController = navegacao,
                     startDestination = "linhas"
@@ -89,12 +90,11 @@ class MainActivity : ComponentActivity() {
                         LinhaDetalhesScreen(navegacao, linhaCodigo)
                     }
 
-
-                    // ---------- Feedback ----------
-                    // composable("feedback") { FeedbackScreen(navegacao) }
-
-                    // ---------- Perfil ----------
-                    // composable("perfil") { PerfilScreen(navegacao) }
+//                    // ---------- Feedback ----------
+//                    composable("feedback") { FeedbackScreen(navegacao) }
+//
+//                    // ---------- Perfil ----------
+//                    composable("perfil") { PerfilScreen(navegacao) }
                 }
             }
         }
