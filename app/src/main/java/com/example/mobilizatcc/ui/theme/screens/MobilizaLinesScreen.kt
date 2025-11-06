@@ -45,10 +45,17 @@ fun LinesScreen(
 
     val lines by viewModel.lines.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val favoritos by viewModel.favoritos.collectAsState()
+    val showingFavoritos by viewModel.showingFavoritos.collectAsState()
     val greenColor = Color(0xFF16A34A)
+    
+    // Usar ID fixo de usuário 1 por enquanto (você pode mudar isso depois para pegar do login)
+    val usuarioId = 1
 
-
-    LaunchedEffect(Unit) { viewModel.fetchLines() }
+    LaunchedEffect(Unit) {
+        viewModel.fetchLines()
+        viewModel.fetchFavoritos(usuarioId)
+    }
 
     // 🔹 Mapeamento: índice da tab -> routeType
     // 0 (Ônibus) -> routeType 3
@@ -56,20 +63,35 @@ fun LinesScreen(
     // 2 (Trem) -> routeType 2
     val routeTypeMap = mapOf(0 to 3, 1 to 1, 2 to 2)
 
-    // 🔹 Linhas filtradas por tipo de transporte E busca
-    val filteredLines = remember(lines, searchQuery, selectedTabIndex) {
+    // 🔹 Linhas filtradas por tipo de transporte, busca e favoritos
+    val filteredLines = remember(lines, searchQuery, selectedTabIndex, showingFavoritos, favoritos) {
         val selectedRouteType = routeTypeMap[selectedTabIndex] ?: 3
 
-        // Primeiro filtra por tipo de transporte
-        val linesByType = lines.filter { it.routeType == selectedRouteType }
-
-        // Depois aplica o filtro de busca
-        if (searchQuery.isBlank()) {
-            linesByType.shuffled(Random(System.currentTimeMillis())).take(8)
+        // Se estiver mostrando favoritos
+        if (showingFavoritos) {
+            val linhasFavoritas = viewModel.getLinhasFavoritas()
+            // Aplica filtro de tipo e busca nas linhas favoritas
+            val favoritasByType = linhasFavoritas.filter { it.routeType == selectedRouteType }
+            
+            if (searchQuery.isBlank()) {
+                favoritasByType
+            } else {
+                favoritasByType.filter {
+                    it.routeShortName.contains(searchQuery, ignoreCase = true) ||
+                            (it.routeLongName?.contains(searchQuery, ignoreCase = true) ?: false)
+                }
+            }
         } else {
-            linesByType.filter {
-                it.routeShortName.contains(searchQuery, ignoreCase = true) ||
-                        (it.routeLongName?.contains(searchQuery, ignoreCase = true) ?: false)
+            // Comportamento normal quando não está mostrando favoritos
+            val linesByType = lines.filter { it.routeType == selectedRouteType }
+            
+            if (searchQuery.isBlank()) {
+                linesByType.shuffled(Random(System.currentTimeMillis())).take(8)
+            } else {
+                linesByType.filter {
+                    it.routeShortName.contains(searchQuery, ignoreCase = true) ||
+                            (it.routeLongName?.contains(searchQuery, ignoreCase = true) ?: false)
+                }
             }
         }
     }
@@ -95,7 +117,11 @@ fun LinesScreen(
                 TransportTabs(
                     selectedTabIndex = selectedTabIndex,
                     onTabSelected = { selectedTabIndex = it },
-                    tabs = tabs
+                    tabs = tabs,
+                    showingFavoritos = showingFavoritos,
+                    onFavoritosClick = { 
+                        viewModel.toggleShowFavoritos()
+                    }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -306,7 +332,13 @@ fun SearchField(value: String, onValueChange: (String) -> Unit) {
     }
 }
 @Composable
-fun TransportTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit, tabs: List<String>) {
+fun TransportTabs(
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit,
+    tabs: List<String>,
+    showingFavoritos: Boolean,
+    onFavoritosClick: () -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -314,12 +346,17 @@ fun TransportTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit, tabs: Lis
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
     ) {
-        Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = "Favoritos",
-            tint = Color.Gray,
-            modifier = Modifier.size(18.dp)
-        )
+        IconButton(
+            onClick = onFavoritosClick,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = if (showingFavoritos) "Mostrar todas as linhas" else "Mostrar favoritos",
+                tint = if (showingFavoritos) Color(0xFF16A34A) else Color.Gray,
+                modifier = Modifier.size(22.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(12.dp))
         TabRow(
             selectedTabIndex = selectedTabIndex,

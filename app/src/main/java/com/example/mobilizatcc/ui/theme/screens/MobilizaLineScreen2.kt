@@ -35,8 +35,13 @@ fun LinhaTracadoScreen(
 
     val paradas by viewModel.paradas.collectAsState()
     val estimativasPorStopId by viewModel.estimativasPorStopId.collectAsState()
+    val isFavorito by viewModel.isFavorito.collectAsState()
+    val favoritoLoading by viewModel.favoritoLoading.collectAsState()
 
     var paradaSelecionada by remember { mutableStateOf<String?>(null) }
+    
+    // Usar ID fixo de usuário 1 por enquanto (você pode mudar isso depois para pegar do login)
+    val usuarioId = 1
 
     // 🔹 Pegar a última parada (estação final)
     val estacaoFinal = remember(paradas) {
@@ -47,6 +52,7 @@ fun LinhaTracadoScreen(
         if (routeId.isNotEmpty()) {
             viewModel.carregarParadas(routeId, "ida")
             viewModel.carregarEstimativas(routeId)
+            viewModel.verificarFavorito(usuarioId, routeId)
         }
     }
 
@@ -120,13 +126,30 @@ fun LinhaTracadoScreen(
                     }
                 }
 
-                Image(
-                    painter = painterResource(id = R.drawable.star),
-                    contentDescription = "Favoritar",
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable { /* ação de favoritar */ }
-                )
+                IconButton(
+                    onClick = {
+                        if (!favoritoLoading) {
+                            viewModel.toggleFavorito(usuarioId, routeId)
+                        }
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    if (favoritoLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.Gray,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(
+                                id = if (isFavorito) R.drawable.star_filled else R.drawable.star
+                            ),
+                            contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

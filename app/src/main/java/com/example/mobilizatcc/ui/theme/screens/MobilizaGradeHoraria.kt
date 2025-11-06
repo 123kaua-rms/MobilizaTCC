@@ -33,7 +33,12 @@ fun LinhaDetalhesScreen(
     val frequencias by viewModel.frequencias.collectAsState()
     val paradas by viewModel.paradas.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isFavorito by viewModel.isFavorito.collectAsState()
+    val favoritoLoading by viewModel.favoritoLoading.collectAsState()
     val greenColor = Color(0xFF16A34A)
+    
+    // Usar ID fixo de usuário 1 por enquanto (você pode mudar isso depois para pegar do login)
+    val usuarioId = 1
 
     // 🔹 Pegar a última parada (estação final)
     val estacaoFinal = remember(paradas) {
@@ -47,6 +52,7 @@ fun LinhaDetalhesScreen(
     LaunchedEffect(routeId) {
         if (routeId.isNotEmpty()) {
             viewModel.carregarParadas(routeId)
+            viewModel.verificarFavorito(usuarioId, routeId)
         }
     }
 
@@ -129,13 +135,30 @@ fun LinhaDetalhesScreen(
                     }
                 }
 
-                Image(
-                    painter = painterResource(id = R.drawable.star),
-                    contentDescription = "Favoritar",
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable { /* ação de favoritar */ }
-                )
+                IconButton(
+                    onClick = {
+                        if (!favoritoLoading) {
+                            viewModel.toggleFavorito(usuarioId, routeId)
+                        }
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    if (favoritoLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.Gray,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(
+                                id = if (isFavorito) R.drawable.star_filled else R.drawable.star
+                            ),
+                            contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
             }
 
             // ---------- BLOCO VERDE ----------
