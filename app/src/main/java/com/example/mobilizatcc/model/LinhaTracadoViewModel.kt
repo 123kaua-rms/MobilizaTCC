@@ -7,7 +7,6 @@ import com.example.mobilizatcc.model.Stop
 import com.example.mobilizatcc.model.SentidoResponse
 import com.example.mobilizatcc.model.StopTimeEstimativa
 import com.example.mobilizatcc.model.FavoritoRequest
-import com.example.mobilizatcc.model.HorarioParada
 import com.example.mobilizatcc.service.RetrofitFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,10 +32,6 @@ class LinhaTracadoViewModel : ViewModel() {
 
     private val _stopTimesEstimativas = MutableStateFlow<List<StopTimeEstimativa>>(emptyList())
     val stopTimesEstimativas: StateFlow<List<StopTimeEstimativa>> = _stopTimesEstimativas
-
-    // Horários detalhados das paradas
-    private val _horariosDetalhados = MutableStateFlow<List<HorarioParada>>(emptyList())
-    val horariosDetalhados: StateFlow<List<HorarioParada>> = _horariosDetalhados
 
     // Mapa de tempo estimado por stop_id
     private val _estimativasPorStopId = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -87,51 +82,41 @@ class LinhaTracadoViewModel : ViewModel() {
     fun carregarEstimativas(tripId: String) {
         viewModelScope.launch {
             try {
-                Log.d("LinhaTracadoVM", "Carregando horários detalhados para: $tripId")
-                val response = service.getStopTimesDetalhado(tripId)
+                Log.d("LinhaTracadoVM", "Carregando estimativas para: $tripId")
+                val response = service.getStopTimesEstimativa(tripId)
 
-                _horariosDetalhados.value = response.horarioParadas
-                calcularEstimativasDetalhadas()
-                
-                Log.d("LinhaTracadoVM", "Horários carregados: ${response.horarioParadas.size} paradas")
+                // Protege contra null
+                _stopTimesEstimativas.value = response.stopTimes ?: emptyList()
+
+                calcularEstimativasPorParada()
+                Log.d("LinhaTracadoVM", "Estimativas carregadas: ${response.stopTimes.size} paradas")
             } catch (e: Exception) {
-                Log.e("LinhaTracadoVM", "Erro ao carregar horários", e)
-                _horariosDetalhados.value = emptyList()
+                Log.e("LinhaTracadoVM", "Erro ao carregar estimativas", e)
+                _stopTimesEstimativas.value = emptyList()
                 _estimativasPorStopId.value = emptyMap()
             }
         }
     }
 
-    private fun calcularEstimativasDetalhadas() {
-        val horarios = _horariosDetalhados.value
+    private fun calcularEstimativasPorParada() {
+        val stopTimes = _stopTimesEstimativas.value
 
-        if (horarios.isEmpty()) {
-            Log.w("LinhaTracadoVM", "Nenhum horário recebido para cálculo.")
+        if (stopTimes.isNullOrEmpty()) {
+            Log.w("LinhaTracadoVM", "Nenhuma estimativa recebida para cálculo.")
             _estimativasPorStopId.value = emptyMap()
             return
         }
 
         try {
-            val estimativasMap = mutableMapOf<String, Int>()
+            val estimativasMap = mutableMapOf<String, String>()
 
-            // Agrupa horários por stop_id e pega o menor tempo (próximo ônibus)
-            for (horario in horarios) {
-                if (horario.paradas.isNotEmpty()) {
-                    val stopId = horario.paradas[0].stopId
-                    val minutos = calcularMinutosAteChegada(horario.arrivalTime)
-                    
-                    // Só considera horários futuros nas próximas 3 horas
-                    if (minutos in 0..180) {
-                        // Se não existe estimativa para essa parada ou se encontrou um horário mais próximo
-                        if (!estimativasMap.containsKey(stopId) || minutos < estimativasMap[stopId]!!) {
-                            estimativasMap[stopId] = minutos
-                        }
-                    }
-                }
+            for (stopTime in stopTimes) {
+                val minutos = stopTime.estimativaMinutos
+                    ?: calcularMinutosAteChegada(stopTime.arrivalTime)
+                estimativasMap[stopTime.stopId] = formatarTempo(minutos)
             }
 
-            // Converte para String formatada
-            _estimativasPorStopId.value = estimativasMap.mapValues { formatarTempo(it.value) }
+            _estimativasPorStopId.value = estimativasMap
             Log.d("LinhaTracadoVM", "Estimativas calculadas: ${estimativasMap.size} paradas")
 
         } catch (e: Exception) {
@@ -142,30 +127,25 @@ class LinhaTracadoViewModel : ViewModel() {
 
     private fun calcularMinutosAteChegada(arrivalTime: String): Int {
         try {
-            // O arrivalTime vem no formato ISO 8601: "1970-01-01T00:01:17.000Z"
-            // Vamos extrair apenas a hora
-            val timePart = arrivalTime.substringAfter("T").substringBefore(".")
-            val parts = timePart.split(":")
-            
-            if (parts.size >= 2) {
-                val hora = parts[0].toInt()
-                val minuto = parts[1].toInt()
-                val minChegada = hora * 60 + minuto
-                
-                val agora = Calendar.getInstance()
-                val horaAtual = agora.get(Calendar.HOUR_OF_DAY) * 60 + agora.get(Calendar.MINUTE)
-                
+            val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            val agora = Calendar.getInstance()
+            val horaAtual = agora.get(Calendar.HOUR_OF_DAY) * 60 + agora.get(Calendar.MINUTE)
+
+            val chegada = sdf.parse(arrivalTime)
+            if (chegada != null) {
+                val calChegada = Calendar.getInstance().apply { time = chegada }
+                val minChegada = calChegada.get(Calendar.HOUR_OF_DAY) * 60 + calChegada.get(Calendar.MINUTE)
+
                 var diferenca = minChegada - horaAtual
-                
-                // Se a diferença for negativa, considera próximo dia
+
                 if (diferenca < 0) {
-                    diferenca += 24 * 60
+                    diferenca += 24 * 60 // próximo dia
                 }
-                
+
                 return diferenca
             }
         } catch (e: Exception) {
-            Log.e("LinhaTracadoVM", "Erro ao calcular minutos até chegada: $arrivalTime", e)
+            Log.e("LinhaTracadoVM", "Erro ao calcular minutos até chegada", e)
         }
         return 0
     }

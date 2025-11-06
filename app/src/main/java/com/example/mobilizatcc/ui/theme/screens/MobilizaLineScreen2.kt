@@ -143,7 +143,7 @@ fun LinhaTracadoScreen(
                     } else {
                         Image(
                             painter = painterResource(
-                                id = if (isFavorito) R.drawable.star_filled else R.drawable.star
+                                id = if (isFavorito) R.drawable.star_filled else R.drawable.estrela
                             ),
                             contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
                             modifier = Modifier.size(30.dp)
@@ -244,7 +244,7 @@ fun LinhaTracadoScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.relogio),
+                            painter = painterResource(id = R.drawable.horario),
                             contentDescription = "Grade horária",
                             tint = Color.White,
                             modifier = Modifier.size(16.dp)
@@ -328,7 +328,7 @@ fun LinhaTracadoScreen(
                                         horizontalArrangement = Arrangement.Center
                                     ) {
                                         Icon(
-                                            painter = painterResource(id = R.drawable.relogio),
+                                            painter = painterResource(id = R.drawable.horario),
                                             contentDescription = "Tempo estimado",
                                             tint = Color.DarkGray,
                                             modifier = Modifier.size(14.dp)
