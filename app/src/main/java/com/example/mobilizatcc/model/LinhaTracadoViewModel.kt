@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilizatcc.model.Stop
 import com.example.mobilizatcc.model.SentidoResponse
-import com.example.mobilizatcc.model.Frequencia
+import com.example.mobilizatcc.model.StopTimeEstimativa
 import com.example.mobilizatcc.service.RetrofitFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,11 +29,12 @@ class LinhaTracadoViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _frequencias = MutableStateFlow<List<Frequencia>>(emptyList())
-    val frequencias: StateFlow<List<Frequencia>> = _frequencias
+    private val _stopTimesEstimativas = MutableStateFlow<List<StopTimeEstimativa>>(emptyList())
+    val stopTimesEstimativas: StateFlow<List<StopTimeEstimativa>> = _stopTimesEstimativas
 
-    private val _tempoEstimado = MutableStateFlow<String?>(null)
-    val tempoEstimado: StateFlow<String?> = _tempoEstimado
+    // Mapa de tempo estimado por stop_id
+    private val _estimativasPorStopId = MutableStateFlow<Map<String, String>>(emptyMap())
+    val estimativasPorStopId: StateFlow<Map<String, String>> = _estimativasPorStopId
 
     private var tripIdAtual: String? = null
 
@@ -47,16 +48,13 @@ class LinhaTracadoViewModel : ViewModel() {
                 tripIdAtual = tripId
                 _sentido.value = sentido
 
-                // Chama o endpoint correto conforme seu UsuarioService
                 val response: SentidoResponse = if (sentido == "ida") {
                     service.getParadasIda(tripId)
                 } else {
                     service.getParadasVolta(tripId)
                 }
 
-                // >>> AQUI: use o nome correto do campo retornado (paradas)
                 _paradas.value = response.paradas ?: emptyList()
-
                 Log.d("LinhaTracadoVM", "Paradas carregadas: ${_paradas.value.size}")
 
             } catch (e: retrofit2.HttpException) {
@@ -73,66 +71,83 @@ class LinhaTracadoViewModel : ViewModel() {
         }
     }
 
-    fun carregarFrequencias(linhaCodigo: String) {
+    fun carregarEstimativas(tripId: String) {
         viewModelScope.launch {
             try {
-                Log.d("LinhaTracadoVM", "Carregando frequências para: $linhaCodigo")
-                val response = service.getFrequencias(linhaCodigo)
-                _frequencias.value = response.frequencia
-                calcularTempoEstimado()
+                Log.d("LinhaTracadoVM", "Carregando estimativas para: $tripId")
+                val response = service.getStopTimesEstimativa(tripId)
+
+                // Protege contra null
+                _stopTimesEstimativas.value = response.stopTimes ?: emptyList()
+
+                calcularEstimativasPorParada()
             } catch (e: Exception) {
-                Log.e("LinhaTracadoVM", "Erro ao carregar frequências", e)
-                _frequencias.value = emptyList()
+                Log.e("LinhaTracadoVM", "Erro ao carregar estimativas", e)
+                _stopTimesEstimativas.value = emptyList()
+                _estimativasPorStopId.value = emptyMap()
             }
         }
     }
 
-    private fun calcularTempoEstimado() {
-        val frequencias = _frequencias.value
-        if (frequencias.isEmpty()) {
-            _tempoEstimado.value = null
+    private fun calcularEstimativasPorParada() {
+        val stopTimes = _stopTimesEstimativas.value
+
+        if (stopTimes.isNullOrEmpty()) {
+            Log.w("LinhaTracadoVM", "Nenhuma estimativa recebida para cálculo.")
+            _estimativasPorStopId.value = emptyMap()
             return
         }
 
         try {
+            val estimativasMap = mutableMapOf<String, String>()
+
+            for (stopTime in stopTimes) {
+                val minutos = stopTime.estimativaMinutos
+                    ?: calcularMinutosAteChegada(stopTime.arrivalTime)
+                estimativasMap[stopTime.stopId] = formatarTempo(minutos)
+            }
+
+            _estimativasPorStopId.value = estimativasMap
+            Log.d("LinhaTracadoVM", "Estimativas calculadas: ${estimativasMap.size} paradas")
+
+        } catch (e: Exception) {
+            Log.e("LinhaTracadoVM", "Erro ao calcular estimativas", e)
+            _estimativasPorStopId.value = emptyMap()
+        }
+    }
+
+    private fun calcularMinutosAteChegada(arrivalTime: String): Int {
+        try {
+            val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             val agora = Calendar.getInstance()
             val horaAtual = agora.get(Calendar.HOUR_OF_DAY) * 60 + agora.get(Calendar.MINUTE)
 
-            val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            val chegada = sdf.parse(arrivalTime)
+            if (chegada != null) {
+                val calChegada = Calendar.getInstance().apply { time = chegada }
+                val minChegada = calChegada.get(Calendar.HOUR_OF_DAY) * 60 + calChegada.get(Calendar.MINUTE)
 
-            for (freq in frequencias) {
-                val inicio = sdf.parse(freq.start_time)
-                val fim = sdf.parse(freq.end_time)
+                var diferenca = minChegada - horaAtual
 
-                if (inicio != null && fim != null) {
-                    val calInicio = Calendar.getInstance().apply { time = inicio }
-                    val calFim = Calendar.getInstance().apply { time = fim }
-
-                    val minInicio = calInicio.get(Calendar.HOUR_OF_DAY) * 60 + calInicio.get(Calendar.MINUTE)
-                    val minFim = calFim.get(Calendar.HOUR_OF_DAY) * 60 + calFim.get(Calendar.MINUTE)
-
-                    if (horaAtual >= minInicio && horaAtual <= minFim) {
-                        // Estamos dentro do intervalo desta frequência
-                        val intervaloMinutos = freq.headway_secs / 60
-                        val minutos = intervaloMinutos % 60
-                        val horas = intervaloMinutos / 60
-
-                        _tempoEstimado.value = if (horas > 0) {
-                            "${horas}h ${minutos}min"
-                        } else {
-                            "${minutos} min"
-                        }
-                        return
-                    }
+                if (diferenca < 0) {
+                    diferenca += 24 * 60 // próximo dia
                 }
+
+                return diferenca
             }
-
-            // Se não encontrou frequência ativa, mostra a próxima
-            _tempoEstimado.value = "20 min"
-
         } catch (e: Exception) {
-            Log.e("LinhaTracadoVM", "Erro ao calcular tempo estimado", e)
-            _tempoEstimado.value = null
+            Log.e("LinhaTracadoVM", "Erro ao calcular minutos até chegada", e)
+        }
+        return 0
+    }
+
+    private fun formatarTempo(minutos: Int): String {
+        return if (minutos >= 60) {
+            val horas = minutos / 60
+            val mins = minutos % 60
+            if (mins > 0) "${horas}h ${mins}min" else "${horas}h"
+        } else {
+            "$minutos min"
         }
     }
 
@@ -140,8 +155,7 @@ class LinhaTracadoViewModel : ViewModel() {
         val novo = if (_sentido.value == "ida") "volta" else "ida"
         tripIdAtual?.let {
             carregarParadas(it, novo)
-        } ?: run {
-            Log.w("LinhaTracadoVM", "Não há tripIdAtual definido ao mudar sentido")
-        }
+            carregarEstimativas(it)
+        } ?: Log.w("LinhaTracadoVM", "Não há tripIdAtual definido ao mudar sentido")
     }
 }

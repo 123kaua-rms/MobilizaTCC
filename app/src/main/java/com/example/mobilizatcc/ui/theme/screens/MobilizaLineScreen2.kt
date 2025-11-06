@@ -34,9 +34,9 @@ fun LinhaTracadoScreen(
     val grayLine = Color(0xFFD6D6D6)
 
     val paradas by viewModel.paradas.collectAsState()
-    val tempoEstimado by viewModel.tempoEstimado.collectAsState()
+    val estimativasPorStopId by viewModel.estimativasPorStopId.collectAsState()
 
-    var paradaSelecionada by remember { mutableStateOf(-1) }
+    var paradaSelecionada by remember { mutableStateOf<String?>(null) }
 
     // 🔹 Pegar a última parada (estação final)
     val estacaoFinal = remember(paradas) {
@@ -46,13 +46,7 @@ fun LinhaTracadoScreen(
     LaunchedEffect(routeId) {
         if (routeId.isNotEmpty()) {
             viewModel.carregarParadas(routeId, "ida")
-        }
-    }
-
-    LaunchedEffect(routeShortName) {
-        if (routeShortName.isNotEmpty()) {
-            // Carregar frequências passando o código da linha com o sufixo -0
-            viewModel.carregarFrequencias("$routeShortName-0")
+            viewModel.carregarEstimativas(routeId)
         }
     }
 
@@ -78,7 +72,7 @@ fun LinhaTracadoScreen(
                     painter = painterResource(id = R.drawable.perfilcinza),
                     contentDescription = "Usuário",
                     modifier = Modifier
-                        .padding(start = 15.dp, top = 11.dp)
+                        .padding(start = 17.dp, top = 11.dp)
                         .size(40.dp)
                         .clip(CircleShape)
                         .clickable { navegacao.navigate("perfil") }
@@ -97,10 +91,10 @@ fun LinhaTracadoScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.seta),
                     contentDescription = "Voltar",
-                    tint = Color.Gray,
+                    tint = Color.Black,
                     modifier = Modifier
-                        .size(26.dp)
-                        .clickable { navegacao.navigateUp() }
+                        .size(20.dp)
+                        .clickable { navegacao?.popBackStack() }
                 )
 
                 Box(
@@ -252,11 +246,16 @@ fun LinhaTracadoScreen(
                     .padding(horizontal = 24.dp)
             ) {
                 itemsIndexed(paradas) { index, parada ->
+                    val stopId = parada.stopId ?: ""
+                    val isSelecionada = paradaSelecionada == stopId
+
                     Row(
                         verticalAlignment = Alignment.Top,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { paradaSelecionada = index }
+                            .clickable {
+                                paradaSelecionada = if (isSelecionada) null else stopId
+                            }
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -266,8 +265,7 @@ fun LinhaTracadoScreen(
                                 modifier = Modifier
                                     .size(12.dp)
                                     .background(
-                                        color = if (index <= paradaSelecionada && paradaSelecionada != -1)
-                                            greenColor else grayLine,
+                                        color = if (isSelecionada) greenColor else grayLine,
                                         shape = CircleShape
                                     )
                             )
@@ -275,58 +273,50 @@ fun LinhaTracadoScreen(
                                 Box(
                                     modifier = Modifier
                                         .width(2.dp)
-                                        .height(52.dp)
+                                        .height(if (isSelecionada) 72.dp else 52.dp)
                                         .background(
-                                            color = if (index <= paradaSelecionada && paradaSelecionada != -1)
-                                                greenColor else grayLine
+                                            color = if (isSelecionada) greenColor else grayLine
                                         )
                                 )
                             }
                         }
 
                         Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = parada.stopName ?: "Parada sem nome",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color.Black,
-                                    modifier = Modifier.weight(1f)
-                                )
+                            Text(
+                                text = parada.stopName ?: "Parada sem nome",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Black
+                            )
 
-                                // 🔹 Mostrar estimativa se esta parada estiver selecionada
-                                if (index == paradaSelecionada && tempoEstimado != null) {
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .background(
-                                                color = Color(0xFFE0E0E0),
-                                                shape = RoundedCornerShape(6.dp)
-                                            )
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            // 🔹 Mostrar estimativa se esta parada estiver selecionada
+                            if (isSelecionada && estimativasPorStopId.containsKey(stopId)) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            color = Color(0xFFE8E8E8),
+                                            shape = RoundedCornerShape(6.dp)
+                                        )
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.relogio),
-                                                contentDescription = "Tempo estimado",
-                                                tint = Color.DarkGray,
-                                                modifier = Modifier.size(12.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text(
-                                                text = tempoEstimado ?: "",
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = Color.DarkGray
-                                            )
-                                        }
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.relogio),
+                                            contentDescription = "Tempo estimado",
+                                            tint = Color.DarkGray,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(5.dp))
+                                        Text(
+                                            text = estimativasPorStopId[stopId] ?: "",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color.DarkGray
+                                        )
                                     }
                                 }
                             }

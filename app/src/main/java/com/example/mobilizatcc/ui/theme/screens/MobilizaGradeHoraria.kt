@@ -33,7 +33,7 @@ fun LinhaDetalhesScreen(
     val frequencias by viewModel.frequencias.collectAsState()
     val paradas by viewModel.paradas.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val greenColor = Color(0xFF3AAA35)
+    val greenColor = Color(0xFF16A34A)
 
     // 🔹 Pegar a última parada (estação final)
     val estacaoFinal = remember(paradas) {
@@ -84,7 +84,7 @@ fun LinhaDetalhesScreen(
                 painter = painterResource(id = R.drawable.perfilcinza),
                 contentDescription = "Usuário",
                 modifier = Modifier
-                    .padding(start = 35.dp, top = 20.dp)
+                    .padding(start = 35.dp, top = 18.dp)
                     .size(40.dp)
                     .clip(CircleShape)
             )
@@ -129,11 +129,12 @@ fun LinhaDetalhesScreen(
                     }
                 }
 
-                Icon(
+                Image(
                     painter = painterResource(id = R.drawable.star),
                     contentDescription = "Favoritar",
-                    tint = Color(0xFFFFD600),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable { /* ação de favoritar */ }
                 )
             }
 

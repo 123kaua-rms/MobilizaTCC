@@ -29,7 +29,6 @@ interface UsuarioService {
     @POST("usuario/resetar-senha")
     fun resetarSenha(@Body body: ResetSenhaRequest): Call<Void>
 
-    // ========================= LINHAS / SENTIDOS =========================
 
     @GET("linhas")
     suspend fun getAllLines(): LinesApiResponse
@@ -40,10 +39,34 @@ interface UsuarioService {
     @GET("sentidos/{trip_id}/volta")
     suspend fun getParadasVolta(@Path("trip_id") tripId: String): SentidoResponse
 
-    // ========================= FREQUÊNCIAS =========================
 
     @GET("frequencias/{linha}-0")
     suspend fun getFrequencias(
         @Path("linha") linha: String
     ): FrequenciaResponse
+
+
+    @GET("stop_times/{trip_id}/estimativa")
+    suspend fun getStopTimesEstimativa(
+        @Path("trip_id") tripId: String
+    ): StopTimeEstimativaResponse
+
+    // ========================= FAVORITOS =========================
+
+    @GET("favoritos/usuario/{usuario_id}")
+    suspend fun getFavoritosByUsuario(
+        @Path("usuario_id") usuarioId: Int
+    ): FavoritosResponse
+
+    @Headers("Content-Type: application/json")
+    @POST("favoritos")
+    suspend fun adicionarFavorito(
+        @Body favorito: FavoritoRequest
+    ): FavoritoActionResponse
+
+    @DELETE("favoritos/usuario/{usuario_id}/linha/{linha_id}")
+    suspend fun removerFavorito(
+        @Path("usuario_id") usuarioId: Int,
+        @Path("linha_id") linhaId: String
+    ): FavoritoActionResponse
 }
