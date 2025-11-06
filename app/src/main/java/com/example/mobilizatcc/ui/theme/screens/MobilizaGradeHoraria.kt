@@ -20,24 +20,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.asPaddingValues
 import com.example.mobilizatcc.R
 import com.example.mobilizatcc.viewmodel.LinhaDetalhesViewModel
 
 @Composable
 fun LinhaDetalhesScreen(
     navegacao: NavHostController? = null,
+    routeId: String = "",
     linhaCodigo: String = "1012"
 ) {
     val viewModel: LinhaDetalhesViewModel = viewModel()
     val frequencias by viewModel.frequencias.collectAsState()
+    val paradas by viewModel.paradas.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val greenColor = Color(0xFF3AAA35)
 
+    // 🔹 Pegar a última parada (estação final)
+    val estacaoFinal = remember(paradas) {
+        paradas.lastOrNull()?.stopName ?: "Estação final"
+    }
+
     LaunchedEffect(linhaCodigo) {
         viewModel.carregarFrequencias(linhaCodigo)
+    }
+
+    LaunchedEffect(routeId) {
+        if (routeId.isNotEmpty()) {
+            viewModel.carregarParadas(routeId)
+        }
     }
 
     Scaffold(
@@ -134,35 +144,24 @@ fun LinhaDetalhesScreen(
                     .background(greenColor)
                     .padding(vertical = 16.dp, horizontal = 20.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Ponto de Partida",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.sentido),
+                        contentDescription = "Sentido",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
                     )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.onibus),
-                            contentDescription = "Terminal",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Estação KM 21",
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = estacaoFinal,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // ---------- GRADE HORÁRIA ----------
             Column(
@@ -196,24 +195,25 @@ fun LinhaDetalhesScreen(
                     }
                     else -> {
                         LazyVerticalGrid(
-                            columns = GridCells.Adaptive(minSize = 140.dp),
+                            columns = GridCells.Fixed(3),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(min = 0.dp, max = 400.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                .heightIn(min = 0.dp, max = 600.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                             userScrollEnabled = false
                         ) {
                             items(frequencias) { freq ->
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color.White, RoundedCornerShape(12.dp))
-                                        .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                                        .background(Color.White, RoundedCornerShape(8.dp))
+                                        .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "${freq.start_time} - ${freq.end_time}",
+                                        text = freq.start_time.substring(0, 5),
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp

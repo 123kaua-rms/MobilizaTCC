@@ -5,10 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilizatcc.model.Stop
 import com.example.mobilizatcc.model.SentidoResponse
+import com.example.mobilizatcc.model.Frequencia
 import com.example.mobilizatcc.service.RetrofitFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class LinhaTracadoViewModel : ViewModel() {
 
@@ -25,6 +28,12 @@ class LinhaTracadoViewModel : ViewModel() {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    private val _frequencias = MutableStateFlow<List<Frequencia>>(emptyList())
+    val frequencias: StateFlow<List<Frequencia>> = _frequencias
+
+    private val _tempoEstimado = MutableStateFlow<String?>(null)
+    val tempoEstimado: StateFlow<String?> = _tempoEstimado
 
     private var tripIdAtual: String? = null
 
@@ -61,6 +70,69 @@ class LinhaTracadoViewModel : ViewModel() {
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    fun carregarFrequencias(linhaCodigo: String) {
+        viewModelScope.launch {
+            try {
+                Log.d("LinhaTracadoVM", "Carregando frequências para: $linhaCodigo")
+                val response = service.getFrequencias(linhaCodigo)
+                _frequencias.value = response.frequencia
+                calcularTempoEstimado()
+            } catch (e: Exception) {
+                Log.e("LinhaTracadoVM", "Erro ao carregar frequências", e)
+                _frequencias.value = emptyList()
+            }
+        }
+    }
+
+    private fun calcularTempoEstimado() {
+        val frequencias = _frequencias.value
+        if (frequencias.isEmpty()) {
+            _tempoEstimado.value = null
+            return
+        }
+
+        try {
+            val agora = Calendar.getInstance()
+            val horaAtual = agora.get(Calendar.HOUR_OF_DAY) * 60 + agora.get(Calendar.MINUTE)
+
+            val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+            for (freq in frequencias) {
+                val inicio = sdf.parse(freq.start_time)
+                val fim = sdf.parse(freq.end_time)
+
+                if (inicio != null && fim != null) {
+                    val calInicio = Calendar.getInstance().apply { time = inicio }
+                    val calFim = Calendar.getInstance().apply { time = fim }
+
+                    val minInicio = calInicio.get(Calendar.HOUR_OF_DAY) * 60 + calInicio.get(Calendar.MINUTE)
+                    val minFim = calFim.get(Calendar.HOUR_OF_DAY) * 60 + calFim.get(Calendar.MINUTE)
+
+                    if (horaAtual >= minInicio && horaAtual <= minFim) {
+                        // Estamos dentro do intervalo desta frequência
+                        val intervaloMinutos = freq.headway_secs / 60
+                        val minutos = intervaloMinutos % 60
+                        val horas = intervaloMinutos / 60
+
+                        _tempoEstimado.value = if (horas > 0) {
+                            "${horas}h ${minutos}min"
+                        } else {
+                            "${minutos} min"
+                        }
+                        return
+                    }
+                }
+            }
+
+            // Se não encontrou frequência ativa, mostra a próxima
+            _tempoEstimado.value = "20 min"
+
+        } catch (e: Exception) {
+            Log.e("LinhaTracadoVM", "Erro ao calcular tempo estimado", e)
+            _tempoEstimado.value = null
         }
     }
 

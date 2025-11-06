@@ -34,13 +34,25 @@ fun LinhaTracadoScreen(
     val grayLine = Color(0xFFD6D6D6)
 
     val paradas by viewModel.paradas.collectAsState()
-    val sentido by viewModel.sentido.collectAsState()
+    val tempoEstimado by viewModel.tempoEstimado.collectAsState()
 
     var paradaSelecionada by remember { mutableStateOf(-1) }
+
+    // 🔹 Pegar a última parada (estação final)
+    val estacaoFinal = remember(paradas) {
+        paradas.lastOrNull()?.stopName ?: "Estação final"
+    }
 
     LaunchedEffect(routeId) {
         if (routeId.isNotEmpty()) {
             viewModel.carregarParadas(routeId, "ida")
+        }
+    }
+
+    LaunchedEffect(routeShortName) {
+        if (routeShortName.isNotEmpty()) {
+            // Carregar frequências passando o código da linha com o sufixo -0
+            viewModel.carregarFrequencias("$routeShortName-0")
         }
     }
 
@@ -134,90 +146,100 @@ fun LinhaTracadoScreen(
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.Start
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painter = painterResource(id = R.drawable.sentido),
                             contentDescription = "Sentido",
                             tint = Color.White,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Sentido ${sentido.uppercase()}",
+                            text = estacaoFinal,
                             color = Color.White,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Mudar sentido (${if (sentido == "ida") "volta" else "ida"})",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 14.sp,
+                        text = "Mudar sentido",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 13.sp,
                         modifier = Modifier.clickable { viewModel.mudarSentido() }
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // 🔹 Botões abaixo da área verde
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
                     onClick = { navegacao.navigate("chat") },
                     colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
                     shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .height(36.dp)
+                        .height(40.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.chat),
-                        contentDescription = "Chat",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Fale com outros passageiros",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        maxLines = 1
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.chat),
+                            contentDescription = "Chat",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Fale com outros passageiros",
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 11.sp,
+                            maxLines = 1
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
-
                 Button(
-                    onClick = { navegacao.navigate("gradehoraria/$routeShortName") },
+                    onClick = { navegacao.navigate("gradehoraria/$routeId/$routeShortName") },
                     colors = ButtonDefaults.buttonColors(containerColor = blueColor),
                     shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     modifier = Modifier
-                        .weight(0.7f)
-                        .height(36.dp)
+                        .weight(0.6f)
+                        .height(40.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.relogio),
-                        contentDescription = "Grade horária",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Grade horária",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.relogio),
+                            contentDescription = "Grade horária",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Grade horária",
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 11.sp
+                        )
+                    }
                 }
             }
 
@@ -253,9 +275,9 @@ fun LinhaTracadoScreen(
                                 Box(
                                     modifier = Modifier
                                         .width(2.dp)
-                                        .height(44.dp)
+                                        .height(52.dp)
                                         .background(
-                                            color = if (index < paradaSelecionada && paradaSelecionada != -1)
+                                            color = if (index <= paradaSelecionada && paradaSelecionada != -1)
                                                 greenColor else grayLine
                                         )
                                 )
@@ -263,15 +285,53 @@ fun LinhaTracadoScreen(
                         }
 
                         Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Text(
-                                text = parada.stopName ?: "Parada sem nome",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.Black
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = parada.stopName ?: "Parada sem nome",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.Black,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                // 🔹 Mostrar estimativa se esta parada estiver selecionada
+                                if (index == paradaSelecionada && tempoEstimado != null) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                color = Color(0xFFE0E0E0),
+                                                shape = RoundedCornerShape(6.dp)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.relogio),
+                                                contentDescription = "Tempo estimado",
+                                                tint = Color.DarkGray,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = tempoEstimado ?: "",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = Color.DarkGray
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

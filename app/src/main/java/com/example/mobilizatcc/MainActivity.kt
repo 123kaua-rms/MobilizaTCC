@@ -81,13 +81,15 @@ class MainActivity : ComponentActivity() {
 
                     // ---------- Linha Detalhes ----------
                     composable(
-                        route = "gradehoraria/{linhaCodigo}",
+                        route = "gradehoraria/{routeId}/{linhaCodigo}",
                         arguments = listOf(
+                            navArgument("routeId") { type = NavType.StringType },
                             navArgument("linhaCodigo") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
+                        val routeId = backStackEntry.arguments?.getString("routeId") ?: ""
                         val linhaCodigo = backStackEntry.arguments?.getString("linhaCodigo") ?: ""
-                        LinhaDetalhesScreen(navegacao, linhaCodigo)
+                        LinhaDetalhesScreen(navegacao, routeId, linhaCodigo)
                     }
 
 //                    // ---------- Feedback ----------

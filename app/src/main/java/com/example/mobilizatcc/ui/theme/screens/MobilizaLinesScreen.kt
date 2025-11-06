@@ -50,12 +50,24 @@ fun LinesScreen(
 
     LaunchedEffect(Unit) { viewModel.fetchLines() }
 
-    // 🔹 Linhas filtradas OU aleatórias se a busca estiver vazia
-    val filteredLines = remember(lines, searchQuery) {
+    // 🔹 Mapeamento: índice da tab -> routeType
+    // 0 (Ônibus) -> routeType 3
+    // 1 (Metrô) -> routeType 1
+    // 2 (Trem) -> routeType 2
+    val routeTypeMap = mapOf(0 to 3, 1 to 1, 2 to 2)
+
+    // 🔹 Linhas filtradas por tipo de transporte E busca
+    val filteredLines = remember(lines, searchQuery, selectedTabIndex) {
+        val selectedRouteType = routeTypeMap[selectedTabIndex] ?: 3
+
+        // Primeiro filtra por tipo de transporte
+        val linesByType = lines.filter { it.routeType == selectedRouteType }
+
+        // Depois aplica o filtro de busca
         if (searchQuery.isBlank()) {
-            lines.shuffled(Random(System.currentTimeMillis())).take(8)
+            linesByType.shuffled(Random(System.currentTimeMillis())).take(8)
         } else {
-            lines.filter {
+            linesByType.filter {
                 it.routeShortName.contains(searchQuery, ignoreCase = true) ||
                         (it.routeLongName?.contains(searchQuery, ignoreCase = true) ?: false)
             }
@@ -124,6 +136,21 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
         Color(0xFF16A34A)
     }
 
+    // Determinar o ícone baseado no routeType
+    // 1 = Metrô, 2 = Trem, 3 = Ônibus
+    val transportIcon = when (line.routeType) {
+        1 -> R.drawable.onibus // Metrô (substitua pelo ícone correto se tiver)
+        2 -> R.drawable.onibus // Trem (substitua pelo ícone correto se tiver)
+        3 -> R.drawable.onibus // Ônibus
+        else -> R.drawable.onibus
+    }
+
+    // Determinar largura baseada no tipo (Metrô e Trem precisam de mais espaço)
+    val boxWidth = if (line.routeType == 1 || line.routeType == 2) 95.dp else 65.dp
+
+    // Fonte menor para metrô e trem
+    val fontSize = if (line.routeType == 1 || line.routeType == 2) 10.sp else 11.sp
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,29 +166,34 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
         ) {
             Column(
                 modifier = Modifier
-                    .width(65.dp)
+                    .width(boxWidth)
                     .clip(RoundedCornerShape(6.dp))
                     .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(6.dp))
                     .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
-                    modifier = Modifier.padding(vertical = 4.dp),
+                    modifier = Modifier
+                        .padding(vertical = 4.dp, horizontal = 3.dp)
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.DirectionsBus,
-                        contentDescription = "Ícone de ônibus",
+                        painter = painterResource(id = transportIcon),
+                        contentDescription = "Ícone de transporte",
                         tint = Color.DarkGray,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
-                    Spacer(modifier = Modifier.width(3.dp))
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = line.routeShortName,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = Color.Black
+                        fontSize = fontSize,
+                        color = Color.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
                     )
                 }
                 Box(
