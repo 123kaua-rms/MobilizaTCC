@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilizatcc.model.BusLineResponse
 import com.example.mobilizatcc.model.Favorito
+import com.example.mobilizatcc.model.FavoritoRequest
 import com.example.mobilizatcc.service.RetrofitFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +27,9 @@ class LinesViewModel : ViewModel() {
     
     private val _showingFavoritos = MutableStateFlow(false)
     val showingFavoritos: StateFlow<Boolean> = _showingFavoritos
+    
+    private val _favoritoLoading = MutableStateFlow<Set<String>>(emptySet())
+    val favoritoLoading: StateFlow<Set<String>> = _favoritoLoading
 
     fun fetchLines() {
         viewModelScope.launch {
@@ -69,5 +73,55 @@ class LinesViewModel : ViewModel() {
     fun getLinhasFavoritas(): List<BusLineResponse> {
         val favoritosIds = _favoritos.value.map { it.linhaId }.toSet()
         return _lines.value.filter { it.routeId in favoritosIds }
+    }
+    
+    fun isLinhaFavorita(linhaId: String): Boolean {
+        return _favoritos.value.any { it.linhaId == linhaId }
+    }
+    
+    fun toggleFavorito(usuarioId: Int, linhaId: String) {
+        viewModelScope.launch {
+            try {
+                // Adicionar ao loading
+                _favoritoLoading.value = _favoritoLoading.value + linhaId
+                
+                val isFavorito = isLinhaFavorita(linhaId)
+                
+                if (isFavorito) {
+                    // Remover favorito
+                    Log.d("LinesVM", "Removendo favorito: usuário $usuarioId, linha $linhaId")
+                    val response = service.removerFavorito(usuarioId, linhaId)
+                    if (response.status) {
+                        // Atualizar lista local
+                        _favoritos.value = _favoritos.value.filter { it.linhaId != linhaId }
+                        Log.d("LinesVM", "Favorito removido com sucesso: ${response.message}")
+                    } else {
+                        Log.e("LinesVM", "Erro ao remover favorito: ${response.message}")
+                    }
+                } else {
+                    // Adicionar favorito
+                    Log.d("LinesVM", "Adicionando favorito: usuário $usuarioId, linha $linhaId")
+                    val favoritoRequest = FavoritoRequest(usuarioId = usuarioId, linhaId = linhaId)
+                    val response = service.adicionarFavorito(favoritoRequest)
+                    if (response.status) {
+                        // Atualizar lista local - criar objeto Favorito para a lista
+                        val novoFavorito = Favorito(usuarioId = usuarioId, linhaId = linhaId)
+                        _favoritos.value = _favoritos.value + novoFavorito
+                        Log.d("LinesVM", "Favorito adicionado com sucesso: ${response.message}")
+                    } else {
+                        Log.e("LinesVM", "Erro ao adicionar favorito: ${response.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("LinesVM", "Erro ao toggle favorito", e)
+            } finally {
+                // Remover do loading
+                _favoritoLoading.value = _favoritoLoading.value - linhaId
+            }
+        }
+    }
+    
+    fun isLinhaLoading(linhaId: String): Boolean {
+        return _favoritoLoading.value.contains(linhaId)
     }
 }

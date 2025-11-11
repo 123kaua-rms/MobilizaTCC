@@ -1,5 +1,6 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -20,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,6 +34,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.BusLineResponse
+import com.example.mobilizatcc.utils.UserSessionManager
 import com.example.mobilizatcc.viewmodel.LinesViewModel
 import kotlin.random.Random
 
@@ -39,6 +43,9 @@ fun LinesScreen(
     navegacao: NavHostController?,
     viewModel: LinesViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+    val userSessionManager = remember { UserSessionManager.getInstance(context) }
+    
     var searchQuery by remember { mutableStateOf("") }
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Ônibus", "Metrô", "Trem")
@@ -49,12 +56,20 @@ fun LinesScreen(
     val showingFavoritos by viewModel.showingFavoritos.collectAsState()
     val greenColor = Color(0xFF16A34A)
     
-    // Usar ID fixo de usuário 1 por enquanto (você pode mudar isso depois para pegar do login)
-    val usuarioId = 1
+    // Obter ID do usuário logado
+    val usuarioId = userSessionManager.getUserId()
+    
+    // Log para debug
+    Log.d("LinesScreen", "Usuário ID para favoritos: $usuarioId")
 
     LaunchedEffect(Unit) {
         viewModel.fetchLines()
-        viewModel.fetchFavoritos(usuarioId)
+        if (usuarioId != -1) {
+            Log.d("LinesScreen", "Buscando favoritos para usuário ID: $usuarioId")
+            viewModel.fetchFavoritos(usuarioId)
+        } else {
+            Log.w("LinesScreen", "Usuário não está logado, não buscando favoritos")
+        }
     }
 
     // 🔹 Mapeamento: índice da tab -> routeType

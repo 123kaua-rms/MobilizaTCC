@@ -1,5 +1,8 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import android.util.Log
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.utils.UserSessionManager
 
 @Composable
 fun LinhaTracadoScreen(
@@ -28,6 +34,9 @@ fun LinhaTracadoScreen(
     routeShortName: String = "",
     viewModel: LinhaTracadoViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+    val userSessionManager = remember { UserSessionManager.getInstance(context) }
+    
     val greenColor = Color(0xFF16A34A)
     val orangeColor = Color(0xFFF5A623)
     val blueColor = Color(0xFF1976D2)
@@ -40,8 +49,8 @@ fun LinhaTracadoScreen(
 
     var paradaSelecionada by remember { mutableStateOf<String?>(null) }
     
-    // Usar ID fixo de usuário 1 por enquanto (você pode mudar isso depois para pegar do login)
-    val usuarioId = 1
+    // Obter ID do usuário logado
+    val usuarioId = userSessionManager.getUserId()
 
     // 🔹 Pegar a última parada (estação final)
     val estacaoFinal = remember(paradas) {
@@ -50,9 +59,14 @@ fun LinhaTracadoScreen(
 
     LaunchedEffect(routeId) {
         if (routeId.isNotEmpty()) {
+            Log.d("LineScreen2", "Carregando dados para linha $routeId, usuário $usuarioId")
             viewModel.carregarParadas(routeId, "ida")
             viewModel.carregarEstimativas(routeId)
-            viewModel.verificarFavorito(usuarioId, routeId)
+            if (usuarioId != -1) {
+                viewModel.verificarFavorito(usuarioId, routeId)
+            } else {
+                Log.w("LineScreen2", "Usuário não logado, não verificando favoritos")
+            }
         }
     }
 
@@ -128,8 +142,11 @@ fun LinhaTracadoScreen(
 
                 IconButton(
                     onClick = {
-                        if (!favoritoLoading) {
+                        if (!favoritoLoading && usuarioId != -1) {
+                            Log.d("LineScreen2", "Clicou na estrela: usuário $usuarioId, linha $routeId, isFavorito: $isFavorito")
                             viewModel.toggleFavorito(usuarioId, routeId)
+                        } else if (usuarioId == -1) {
+                            Log.w("LineScreen2", "Usuário não logado, não é possível favoritar")
                         }
                     },
                     modifier = Modifier.size(40.dp)
@@ -137,15 +154,23 @@ fun LinhaTracadoScreen(
                     if (favoritoLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color.Gray,
+                            color = greenColor,
                             strokeWidth = 2.dp
                         )
                     } else {
+                        // Animação de cor da estrela
+                        val starColor by animateColorAsState(
+                            targetValue = if (isFavorito) greenColor else Color.Gray,
+                            animationSpec = tween(durationMillis = 300),
+                            label = "star_color"
+                        )
+                        
                         Image(
                             painter = painterResource(
                                 id = if (isFavorito) R.drawable.star_filled else R.drawable.estrela
                             ),
                             contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
+                            colorFilter = ColorFilter.tint(starColor),
                             modifier = Modifier.size(30.dp)
                         )
                     }

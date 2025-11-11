@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.example.mobilizatcc.ui.theme.MobilizaTCCTheme
 import com.example.mobilizatcc.ui.theme.SplashScreen
 import com.example.mobilizatcc.ui.theme.screens.*
+import com.example.mobilizatcc.utils.UserSessionManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navegacao,
-                    startDestination = "home"
+                    startDestination = "loguin"
                 ) {
                     // ... rotas existentes (mantidas)
 

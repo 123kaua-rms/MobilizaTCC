@@ -10,11 +10,11 @@ data class UsuarioRequest(
 
 data class UsuarioResponse(
     val id: Int,
-    val foto: String,
-    val nome: String,
-    val username: String,
-    val email: String,
-    val senha: String
+    val foto: String?,
+    val nome: String?,
+    val username: String?,
+    val email: String?,
+    val senha: String?
 )
 
 

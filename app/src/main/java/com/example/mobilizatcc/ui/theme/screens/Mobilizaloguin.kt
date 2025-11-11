@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,11 +32,14 @@ import androidx.compose.animation.AnimatedVisibility
 import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.LoginRequest
 import com.example.mobilizatcc.service.RetrofitFactory
+import com.example.mobilizatcc.utils.UserSessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import android.util.Patterns
 import android.util.Log
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun LoginScreen(
@@ -43,6 +47,8 @@ fun LoginScreen(
     onGoogleClick: () -> Unit = {}
 ) {
     val greenColor = Color(0xFF16A34A)
+    val context = LocalContext.current
+    val userSessionManager = remember { UserSessionManager.getInstance(context) }
 
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
@@ -50,10 +56,22 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // Flags de validação
+    // Verificar se usuário já está logado
+    LaunchedEffect(Unit) {
+        if (userSessionManager.isLoggedIn()) {
+            Log.d("LoginScreen", "Usuário já está logado, redirecionando para home")
+            navegacao?.navigate("home") {
+                popUpTo("loguin") { inclusive = true }
+            }
+        }
+    }
+
+    // Flags de validação - aceitar email ou username
     val isEmailValid = email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    val isUsernameValid = email.isNotBlank() && email.length >= 3 // Username mínimo 3 caracteres
+    val isEmailOrUsernameValid = isEmailValid || isUsernameValid
     val isSenhaValid = senha.isNotBlank()
-    val isFormValid = isEmailValid && isSenhaValid
+    val isFormValid = isEmailOrUsernameValid && isSenhaValid
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -130,9 +148,13 @@ fun LoginScreen(
                     value = email,
                     onValueChange = {
                         email = it
-                        if (it.isBlank()) errorMessage = "O campo E-mail/Nome de Usuário é obrigatório."
-                        else if (!Patterns.EMAIL_ADDRESS.matcher(it).matches()) errorMessage = "Digite um e-mail válido."
-                        else errorMessage = null
+                        if (it.isBlank()) {
+                            errorMessage = "O campo E-mail/Nome de Usuário é obrigatório."
+                        } else if (it.length < 3) {
+                            errorMessage = "Digite pelo menos 3 caracteres."
+                        } else {
+                            errorMessage = null
+                        }
                     },
                     label = { Text("E-mail ou Nome de Usuário") },
                     placeholder = { Text("Digite seu e-mail ou nome de usuário") },
@@ -146,7 +168,7 @@ fun LoginScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    isError = email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                    isError = email.isNotEmpty() && !isEmailOrUsernameValid
                 )
 
                 Spacer(modifier = Modifier.height(if (maxWidth < 360.dp) 8.dp else 12.dp))
@@ -212,9 +234,13 @@ fun LoginScreen(
                         errorMessage = null
 
                         val usuarioService = RetrofitFactory().getUsuarioService()
-                        val loginRequest = LoginRequest(email = email, senha = senha)
+                        
+                        // Criar LoginRequest sem encoding especial - deixar o Retrofit/OkHttp lidar com isso
+                        val loginRequest = LoginRequest(email = email.trim(), senha = senha)
 
-                        Log.d("LoginScreen", "Tentando login com email: $email")
+                        Log.d("LoginScreen", "Tentando login com email: ${email.trim()}")
+                        Log.d("LoginScreen", "Senha tem ${senha.length} caracteres")
+                        Log.d("LoginScreen", "LoginRequest: email=${email.trim()}, senha=[HIDDEN]")
 
                         val call = usuarioService.loguinUser(loginRequest)
 
@@ -231,9 +257,34 @@ fun LoginScreen(
                                     Log.d("LoginScreen", "Body status: ${body?.status}, usuario: ${body?.usuario}")
 
                                     if (body != null && body.status && body.usuario != null) {
-                                        Log.d("LoginScreen", "Login bem sucedido!")
-                                        navegacao?.navigate("home") {
-                                            popUpTo("loguin") { inclusive = true }
+                                        val usuario = body.usuario!!
+                                        
+                                        Log.d("LoginScreen", "Login bem sucedido! Dados do usuário:")
+                                        Log.d("LoginScreen", "- ID: ${usuario.id}")
+                                        Log.d("LoginScreen", "- Nome: ${usuario.nome ?: "null"}")
+                                        Log.d("LoginScreen", "- Email: ${usuario.email ?: "null"}")
+                                        Log.d("LoginScreen", "- Username: ${usuario.username ?: "null"}")
+                                        Log.d("LoginScreen", "- Token: ${body.token ?: "null"}")
+                                        
+                                        // Salvar sessão do usuário
+                                        try {
+                                            userSessionManager.saveUserSession(
+                                                userId = usuario.id,
+                                                name = usuario.nome,
+                                                email = usuario.email,
+                                                username = usuario.username,
+                                                token = body.token
+                                            )
+                                            
+                                            Log.d("LoginScreen", "Sessão salva com sucesso!")
+                                            Log.d("LoginScreen", "Verificando se está logado: ${userSessionManager.isLoggedIn()}")
+                                            
+                                            navegacao?.navigate("home") {
+                                                popUpTo("loguin") { inclusive = true }
+                                            }
+                                        } catch (e: Exception) {
+                                            Log.e("LoginScreen", "Erro ao salvar sessão", e)
+                                            errorMessage = "Erro ao salvar dados do usuário. Tente novamente."
                                         }
                                     } else {
                                         errorMessage = "E-mail/Nome de usuário ou senha incorretos."
@@ -244,13 +295,19 @@ fun LoginScreen(
                                     val errorBody = response.errorBody()?.string()
                                     Log.e("LoginScreen", "Response error: $errorBody")
 
-                                    errorMessage = try {
-                                        // Extrair mensagem do JSON de erro
-                                        val pattern = "\"message\":\"([^\"]+)\"".toRegex()
-                                        val match = pattern.find(errorBody ?: "")
-                                        match?.groupValues?.get(1) ?: "Falha no login. Verifique seus dados."
-                                    } catch (e: Exception) {
-                                        "Falha no login. Verifique seus dados."
+                                    errorMessage = when (response.code()) {
+                                        401 -> "E-mail ou senha incorretos."
+                                        404 -> "Usuário não encontrado."
+                                        400 -> "Dados inválidos. Verifique os campos."
+                                        500 -> "Erro no servidor. Tente novamente mais tarde."
+                                        else -> try {
+                                            // Extrair mensagem do JSON de erro
+                                            val pattern = "\"message\":\"([^\"]+)\"".toRegex()
+                                            val match = pattern.find(errorBody ?: "")
+                                            match?.groupValues?.get(1) ?: "Falha no login. Verifique seus dados."
+                                        } catch (e: Exception) {
+                                            "Falha no login. Verifique seus dados."
+                                        }
                                     }
                                 }
                             }

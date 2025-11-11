@@ -2,6 +2,7 @@
 package com.example.mobilizatcc.ui.theme.screens
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -33,18 +35,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.mobilizatcc.model.Usuario
-import com.google.gson.Gson
+import com.example.mobilizatcc.utils.UserSessionManager
 
 @Composable
 fun PerfilScreen(navegacao: NavHostController?) {
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("mobiliza_prefs", Context.MODE_PRIVATE) }
-    val usuarioJson = prefs.getString("usuario_json", null)
-    val usuario: Usuario? = remember(usuarioJson) {
-        try { Gson().fromJson(usuarioJson, Usuario::class.java) } catch (_: Exception) { null }
-    }
-    val nome = usuario?.nome ?: usuario?.email ?: "Username"
+    val userSessionManager = remember { UserSessionManager.getInstance(context) }
+    
+    // Obter dados do usuário logado
+    val userId = userSessionManager.getUserId()
+    val userName = userSessionManager.getUserName() ?: "Usuário"
+    val userEmail = userSessionManager.getUserEmail() ?: "email@exemplo.com"
+    val userUsername = userSessionManager.getUserUsername() ?: "user"
+    val isLoggedIn = userSessionManager.isLoggedIn()
+    
+    // Logs para debug
+    Log.d("PerfilScreen", "=== DADOS DO USUÁRIO ===")
+    Log.d("PerfilScreen", "ID: $userId")
+    Log.d("PerfilScreen", "Nome: $userName")
+    Log.d("PerfilScreen", "Email: $userEmail")
+    Log.d("PerfilScreen", "Username: $userUsername")
+    Log.d("PerfilScreen", "Está logado: $isLoggedIn")
+    Log.d("PerfilScreen", "========================")
+    
     val green = Color(0xFF16A34A)
     val lightGreenBg = Color(0xFFEFF8F1)
 
@@ -83,22 +96,40 @@ fun PerfilScreen(navegacao: NavHostController?) {
                             fontSize = 14.sp
                         )
                         Text(
-                            text = nome,
+                            text = userName,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF22343A)
+                        )
+                        Text(
+                            text = "@$userUsername",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        if (userId != -1) {
+                            Text(
+                                text = "ID: $userId",
+                                color = Color.Gray,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Text(
+                            text = userEmail,
+                            color = Color.Gray,
+                            fontSize = 12.sp
                         )
                     }
 
                     // Logout icon (vermelho)
                     IconButton(onClick = {
-                        prefs.edit().clear().apply()
+                        userSessionManager.clearSession()
                         navegacao?.navigate("loguin") {
                             popUpTo("home") { inclusive = true }
                         }
                     }) {
                         Icon(
-                            imageVector = Icons.Filled.Person,
+                            imageVector = Icons.Filled.ExitToApp,
                             contentDescription = "Logout",
                             tint = Color(0xFFDD2C2C)
                         )
@@ -123,64 +154,42 @@ fun PerfilScreen(navegacao: NavHostController?) {
                     ProfileRow(
                         icon = { Icon(Icons.Outlined.Star, contentDescription = null, tint = green) },
                         text = "Linhas favoritas",
-                        onClick = { navegacao?.navigate("linhas_favoritas") }
+                        onClick = { navegacao?.navigate("linhas") }
                     )
                     ProfileRow(
                         icon = { Icon(Icons.Filled.LocationOn, contentDescription = null, tint = green) },
-                        text = "Feedbacks realizados",
-                        onClick = { navegacao?.navigate("feedbacks_realizados") }
+                        text = "Chat de suporte",
+                        onClick = { navegacao?.navigate("chat") }
                     )
                     ProfileRow(
                         icon = { Icon(Icons.Filled.Security, contentDescription = null, tint = green) },
                         text = "Segurança",
-                        onClick = { navegacao?.navigate("seguranca") }
+                        onClick = { 
+                            // Funcionalidade futura - por enquanto não navega
+                        }
                     )
                     ProfileRow(
                         icon = { Icon(Icons.Filled.Settings, contentDescription = null, tint = green) },
                         text = "Configurações",
-                        onClick = { navegacao?.navigate("configuracoes") }
+                        onClick = { 
+                            // Funcionalidade futura - por enquanto não navega
+                        }
+                    )
+                    ProfileRow(
+                        icon = { Icon(Icons.Filled.ExitToApp, contentDescription = null, tint = Color(0xFFDD2C2C)) },
+                        text = "Sair da conta",
+                        onClick = { 
+                            userSessionManager.clearSession()
+                            navegacao?.navigate("loguin") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }
                     )
                 }
             }
 
-            // Bottom navigation (simples, fixa)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BottomNavItemCustom(
-                    icon = Icons.Filled.Home,
-                    label = "Início",
-                    selected = false,
-                    onClick = {
-                        navegacao?.navigate("home") {
-                            popUpTo("home") { inclusive = false }
-                        }
-                    }
-                )
-                BottomNavItemCustom(
-                    icon = Icons.Filled.LocationOn,
-                    label = "Linhas",
-                    selected = false,
-                    onClick = { navegacao?.navigate("linhas") }
-                )
-                BottomNavItemCustom(
-                    icon = Icons.Filled.Person,
-                    label = "Feedback",
-                    selected = false,
-                    onClick = { navegacao?.navigate("feedback") }
-                )
-                BottomNavItemCustom(
-                    icon = Icons.Filled.Person,
-                    label = "Perfil",
-                    selected = true,
-                    onClick = { /* já está em perfil */ },
-                    tint = green
-                )
-            }
+            // Bottom navigation padrão
+            BottomNavigationBar(navegacao = navegacao, selectedRoute = "perfil")
         }
     }
 }
@@ -218,22 +227,3 @@ private fun ProfileRow(
     }
 }
 
-@Composable
-private fun BottomNavItemCustom(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    tint: Color = Color.Gray
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 6.dp)
-    ) {
-        Icon(icon, contentDescription = label, tint = if (selected) tint else Color.Gray, modifier = Modifier.size(22.dp))
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, fontSize = 12.sp, color = if (selected) tint else Color.Gray)
-    }
-}

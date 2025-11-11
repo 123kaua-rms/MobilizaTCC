@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.utils.UserSessionManager
 import com.example.mobilizatcc.viewmodel.LinhaDetalhesViewModel
 
 @Composable
@@ -29,6 +31,9 @@ fun LinhaDetalhesScreen(
     routeId: String = "",
     linhaCodigo: String = "1012"
 ) {
+    val context = LocalContext.current
+    val userSessionManager = remember { UserSessionManager.getInstance(context) }
+    
     val viewModel: LinhaDetalhesViewModel = viewModel()
     val frequencias by viewModel.frequencias.collectAsState()
     val paradas by viewModel.paradas.collectAsState()
@@ -37,8 +42,8 @@ fun LinhaDetalhesScreen(
     val favoritoLoading by viewModel.favoritoLoading.collectAsState()
     val greenColor = Color(0xFF16A34A)
     
-    // Usar ID fixo de usuário 1 por enquanto (você pode mudar isso depois para pegar do login)
-    val usuarioId = 1
+    // Obter ID do usuário logado
+    val usuarioId = userSessionManager.getUserId()
 
     // 🔹 Pegar a última parada (estação final)
     val estacaoFinal = remember(paradas) {
