@@ -35,6 +35,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import android.util.Patterns
+import android.util.Log
 
 @Composable
 fun LoginScreen(
@@ -211,7 +212,11 @@ fun LoginScreen(
                         errorMessage = null
 
                         val usuarioService = RetrofitFactory().getUsuarioService()
-                        val call = usuarioService.loguinUser(LoginRequest(email = email, senha = senha))
+                        val loginRequest = LoginRequest(email = email, senha = senha)
+
+                        Log.d("LoginScreen", "Tentando login com email: $email")
+
+                        val call = usuarioService.loguinUser(loginRequest)
 
                         call.enqueue(object : Callback<LoguinResponse> {
                             override fun onResponse(
@@ -219,23 +224,41 @@ fun LoginScreen(
                                 response: Response<LoguinResponse>
                             ) {
                                 isLoading = false
+                                Log.d("LoginScreen", "Response code: ${response.code()}")
+
                                 if (response.isSuccessful) {
                                     val body = response.body()
+                                    Log.d("LoginScreen", "Body status: ${body?.status}, usuario: ${body?.usuario}")
+
                                     if (body != null && body.status && body.usuario != null) {
+                                        Log.d("LoginScreen", "Login bem sucedido!")
                                         navegacao?.navigate("home") {
-                                            popUpTo("login") { inclusive = true }
+                                            popUpTo("loguin") { inclusive = true }
                                         }
                                     } else {
                                         errorMessage = "E-mail/Nome de usuário ou senha incorretos."
+                                        Log.e("LoginScreen", "Login falhou: body null ou status false")
                                     }
                                 } else {
-                                    errorMessage = "Falha no login. Verifique seus dados."
+                                    // Tentar parsear a mensagem de erro do backend
+                                    val errorBody = response.errorBody()?.string()
+                                    Log.e("LoginScreen", "Response error: $errorBody")
+
+                                    errorMessage = try {
+                                        // Extrair mensagem do JSON de erro
+                                        val pattern = "\"message\":\"([^\"]+)\"".toRegex()
+                                        val match = pattern.find(errorBody ?: "")
+                                        match?.groupValues?.get(1) ?: "Falha no login. Verifique seus dados."
+                                    } catch (e: Exception) {
+                                        "Falha no login. Verifique seus dados."
+                                    }
                                 }
                             }
 
                             override fun onFailure(call: Call<LoguinResponse>, t: Throwable) {
                                 isLoading = false
                                 errorMessage = "Erro de conexão. Tente novamente."
+                                Log.e("LoginScreen", "Falha na requisição", t)
                             }
                         })
                     },

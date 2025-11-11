@@ -51,6 +51,11 @@ interface UsuarioService {
         @Path("trip_id") tripId: String
     ): StopTimeEstimativaResponse
 
+    @GET("stop_times/{route_id}/estimativa")
+    suspend fun getRouteEstimativa(
+        @Path("route_id") routeId: String
+    ): RouteEstimativaResponse
+
     @GET("stop_times/{trip_id}")
     suspend fun getStopTimesDetalhado(
         @Path("trip_id") tripId: String

@@ -20,26 +20,40 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.model.BusLineResponse
+import com.example.mobilizatcc.viewmodel.LinesViewModel
+import kotlin.random.Random
 
 @Composable
 fun MobilizaHomeScreen(
     navegacao: NavHostController?,
     username: String = "username",
-    onLineClick: (String) -> Unit = {}
+    viewModel: LinesViewModel = viewModel()
 ) {
     var partida by remember { mutableStateOf("Sua localização") }
     var destino by remember { mutableStateOf("") }
 
-    val linhasRecentes = listOf(
-        LineInfo("106", "Terminal Central / Vila Nova - Estação Km 21"),
-        LineInfo("21", "Jardim Paulista / Centro - Estação Km 21"),
-        LineInfo("JA136", "Rodoviária / Bairro Industrial - Estação Centro")
-    )
+    val lines by viewModel.lines.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val greenColor = Color(0xFF16A34A)
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchLines()
+    }
+
+    // Filtrar apenas linhas de ônibus (routeType == 3) e pegar 8 aleatórias
+    val linhasRecentes = remember(lines) {
+        lines.filter { it.routeType == 3 }
+            .shuffled(Random(System.currentTimeMillis()))
+            .take(8)
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -196,14 +210,25 @@ fun MobilizaHomeScreen(
                 modifier = Modifier.padding(start = 16.dp)
             )
 
-            LazyColumn(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .weight(1f)
-            ) {
-                items(linhasRecentes) { linha ->
-                    LineItem(linha, onLineClick)
-                    Spacer(modifier = Modifier.height(12.dp))
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = greenColor)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .weight(1f)
+                ) {
+                    items(linhasRecentes) { linha ->
+                        BusLineItemHome(linha, navegacao)
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
 
@@ -213,15 +238,27 @@ fun MobilizaHomeScreen(
     }
 }
 
-// 🔹 Data class para informações de linha
-data class LineInfo(val codigo: String, val descricao: String)
-
 @Composable
-fun LineItem(line: LineInfo, onClick: (String) -> Unit) {
+fun BusLineItemHome(line: BusLineResponse, navegacao: NavHostController?) {
+    val longName = line.routeLongName ?: ""
+    val parts = longName.split("-").map { it.trim() }.filter { it.isNotEmpty() }
+    val origem = parts.getOrNull(0) ?: "Origem desconhecida"
+    val destino = parts.getOrNull(1) ?: "Destino desconhecida"
+
+    val lineColor = try {
+        if (!line.routeColor.isNullOrBlank()) {
+            Color(android.graphics.Color.parseColor("#${line.routeColor}"))
+        } else Color(0xFF16A34A)
+    } catch (e: Exception) {
+        Color(0xFF16A34A)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(line.codigo) }
+            .clickable {
+                navegacao?.navigate("linha-tracado/${line.routeId}/${line.routeShortName}")
+            }
             .padding(vertical = 8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -236,7 +273,7 @@ fun LineItem(line: LineInfo, onClick: (String) -> Unit) {
                     .background(Color.White)
                     .drawBehind {
                         drawRect(
-                            color = if (line.codigo.startsWith("JA")) Color(0xFFFFA500) else Color(0xFFFFD700),
+                            color = lineColor,
                             topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 4.dp.toPx()),
                             size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx())
                         )
@@ -252,7 +289,7 @@ fun LineItem(line: LineInfo, onClick: (String) -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = line.codigo,
+                        text = line.routeShortName,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -263,10 +300,12 @@ fun LineItem(line: LineInfo, onClick: (String) -> Unit) {
             Spacer(modifier = Modifier.width(12.dp))
 
             Text(
-                text = line.descricao,
+                text = "$origem - $destino",
                 fontSize = 14.sp,
                 color = Color.DarkGray,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 

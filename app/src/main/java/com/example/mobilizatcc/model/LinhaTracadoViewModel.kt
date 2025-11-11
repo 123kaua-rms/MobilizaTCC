@@ -1,12 +1,10 @@
+// kotlin
 package com.example.mobilizatcc.ui.theme.screens
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mobilizatcc.model.Stop
-import com.example.mobilizatcc.model.SentidoResponse
-import com.example.mobilizatcc.model.StopTimeEstimativa
-import com.example.mobilizatcc.model.FavoritoRequest
+import com.example.mobilizatcc.model.*
 import com.example.mobilizatcc.service.RetrofitFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +40,7 @@ class LinhaTracadoViewModel : ViewModel() {
     // Estados para favoritos
     private val _isFavorito = MutableStateFlow(false)
     val isFavorito: StateFlow<Boolean> = _isFavorito
-    
+
     private val _favoritoLoading = MutableStateFlow(false)
     val favoritoLoading: StateFlow<Boolean> = _favoritoLoading
 
@@ -79,20 +77,44 @@ class LinhaTracadoViewModel : ViewModel() {
         }
     }
 
-    fun carregarEstimativas(tripId: String) {
+    fun carregarEstimativas(routeId: String) {
         viewModelScope.launch {
             try {
-                Log.d("LinhaTracadoVM", "Carregando estimativas para: $tripId")
-                val response = service.getStopTimesEstimativa(tripId)
+                Log.d("LinhaTracadoVM", "Carregando estimativas para route: $routeId")
+                val response = service.getRouteEstimativa(routeId)
 
-                // Protege contra null
-                _stopTimesEstimativas.value = response.stopTimes ?: emptyList()
+                if (response.status) {
+                    // Processar estimativas baseado no sentido atual
+                    val sentidoAtual = _sentido.value
+                    val horarioParadas = if (sentidoAtual == "ida") {
+                        response.sentidos.ida?.horarioParadas
+                    } else {
+                        response.sentidos.volta?.horarioParadas
+                    }
 
-                calcularEstimativasPorParada()
-                Log.d("LinhaTracadoVM", "Estimativas carregadas: ${response.stopTimes.size} paradas")
+                    val estimativasMap = mutableMapOf<String, String>()
+                    horarioParadas?.forEach { horario ->
+                        // extrai stopId robustamente (diferentes modelos podem usar nomes diferentes)
+                        val stopId = horario.callGetter("getParada", "getStop")
+                            ?.callGetter("getStopId", "getId")
+                                as? String ?: horario.callGetter("getStopId", "getParadaId", "getId") as? String
+
+                        // extrai estimativa (string ou número)
+                        val estimativaStr = horario.callGetter("getEstimativa", "getEstimativaStr", "getEstimativaMinutos")
+                                as? String ?: horario.callGetter("getEstimativaMinutos")?.toString()
+
+                        if (!stopId.isNullOrBlank() && !estimativaStr.isNullOrBlank()) {
+                            estimativasMap[stopId] = estimativaStr
+                        }
+                    }
+
+                    _estimativasPorStopId.value = estimativasMap
+                    Log.d("LinhaTracadoVM", "Estimativas carregadas: ${estimativasMap.size} paradas")
+                } else {
+                    _estimativasPorStopId.value = emptyMap()
+                }
             } catch (e: Exception) {
                 Log.e("LinhaTracadoVM", "Erro ao carregar estimativas", e)
-                _stopTimesEstimativas.value = emptyList()
                 _estimativasPorStopId.value = emptyMap()
             }
         }
@@ -164,9 +186,10 @@ class LinhaTracadoViewModel : ViewModel() {
 
     fun mudarSentido() {
         val novo = if (_sentido.value == "ida") "volta" else "ida"
-        tripIdAtual?.let {
-            carregarParadas(it, novo)
-            carregarEstimativas(it)
+        _sentido.value = novo
+        tripIdAtual?.let { routeId ->
+            carregarParadas(routeId, novo)
+            carregarEstimativas(routeId)
         } ?: Log.w("LinhaTracadoVM", "Não há tripIdAtual definido ao mudar sentido")
     }
 
@@ -187,7 +210,7 @@ class LinhaTracadoViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _favoritoLoading.value = true
-                
+
                 if (_isFavorito.value) {
                     // Remover favorito
                     val response = service.removerFavorito(usuarioId, linhaId)
@@ -210,5 +233,32 @@ class LinhaTracadoViewModel : ViewModel() {
                 _favoritoLoading.value = false
             }
         }
+    }
+
+    // --- Helpers de reflexão para extrair getters comuns ---
+    private fun Any?.callGetter(vararg names: String): Any? {
+        if (this == null) return null
+        for (name in names) {
+            try {
+                // tenta método com o próprio nome (ex: getId já pode ser o nome)
+                val m1 = this.javaClass.methods.firstOrNull { it.name == name && it.parameterCount == 0 }
+                if (m1 != null) return m1.invoke(this)
+
+                // tenta prefixo get + Nome (ex: getParada)
+                val capital = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                val m2 = this.javaClass.methods.firstOrNull { it.name == "get$capital" && it.parameterCount == 0 }
+                if (m2 != null) return m2.invoke(this)
+
+                // tenta field direto
+                val field = this.javaClass.declaredFields.firstOrNull { it.name.equals(name, ignoreCase = true) }
+                if (field != null) {
+                    field.isAccessible = true
+                    return field.get(this)
+                }
+            } catch (_: Exception) {
+                // ignora e tenta próximo nome
+            }
+        }
+        return null
     }
 }
