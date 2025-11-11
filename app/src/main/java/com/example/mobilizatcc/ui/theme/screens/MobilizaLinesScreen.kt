@@ -125,7 +125,7 @@ fun LinesScreen(
                     .fillMaxSize()
                     .padding(horizontal = 24.dp)
             ) {
-                Header()
+                Header(navegacao)
                 Spacer(modifier = Modifier.height(16.dp))
                 SearchField(value = searchQuery, onValueChange = { searchQuery = it })
                 Spacer(modifier = Modifier.height(16.dp))
@@ -269,7 +269,7 @@ fun BusLineItem(line: BusLineResponse, navegacao: NavHostController?) {
     }
 }
 @Composable
-fun Header() {
+fun Header(navegacao: NavHostController?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -283,6 +283,7 @@ fun Header() {
                 .padding(start = 12.dp, top = 11.dp)
                 .size(40.dp)
                 .clip(CircleShape)
+                .clickable { navegacao?.navigate("perfil") }
         )
     }
 }

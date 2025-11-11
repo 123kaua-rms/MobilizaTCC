@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,14 +36,12 @@ import kotlin.random.Random
 @Composable
 fun MobilizaHomeScreen(
     navegacao: NavHostController?,
-    username: String = "username",
     viewModel: LinesViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val userSessionManager = remember { UserSessionManager.getInstance(context) }
     
-    var searchQuery by remember { mutableStateOf("") }
-    var partida by remember { mutableStateOf("Sua localização") }
+    var partida by remember { mutableStateOf("") }
     var destino by remember { mutableStateOf("") }
 
     val lines by viewModel.lines.collectAsState()
@@ -53,7 +49,7 @@ fun MobilizaHomeScreen(
     val greenColor = Color(0xFF16A34A)
     
     // Obter nome real do usuário
-    val userName = userSessionManager.getUserName()
+    val userName = userSessionManager.getUserName()?.takeIf { it.isNotBlank() } ?: "Usuário"
 
     LaunchedEffect(Unit) {
         viewModel.fetchLines()
@@ -121,19 +117,6 @@ fun MobilizaHomeScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // 🔹 Campo de pesquisa
-                    SearchFieldHome(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        onSearchClick = {
-                            if (searchQuery.isNotBlank()) {
-                                navegacao?.navigate("linhas")
-                            }
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     // 🔹 Card de partida e destino
                     Card(
                         shape = RoundedCornerShape(20.dp),
@@ -153,22 +136,32 @@ fun MobilizaHomeScreen(
                                             .background(Color(0xFF673AB7))
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = "Partida",
                                             fontSize = 12.sp,
                                             color = Color.Gray
                                         )
-                                        Text(
-                                            text = partida,
-                                            fontSize = 14.sp,
-                                            color = Color.Black
+                                        TextField(
+                                            value = partida,
+                                            onValueChange = { partida = it },
+                                            placeholder = { Text("Digite o local de partida", fontSize = 14.sp, color = Color.Gray) },
+                                            singleLine = true,
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = Color.Transparent,
+                                                unfocusedContainerColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                cursorColor = Color(0xFF16A34A)
+                                            ),
+                                            textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, color = Color.Black),
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
                                 }
 
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
                                 Spacer(modifier = Modifier.height(5.dp))
 
                                 // Destino
@@ -186,14 +179,28 @@ fun MobilizaHomeScreen(
                                             fontSize = 12.sp,
                                             color = Color.Gray
                                         )
-                                        Text(
-                                            text = if (destino.isEmpty()) "Selecione um destino" else destino,
-                                            fontSize = 14.sp,
-                                            color = Color.Black
+                                        TextField(
+                                            value = destino,
+                                            onValueChange = { destino = it },
+                                            placeholder = { Text("Digite o destino", fontSize = 14.sp, color = Color.Gray) },
+                                            singleLine = true,
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = Color.Transparent,
+                                                unfocusedContainerColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                cursorColor = Color(0xFF16A34A)
+                                            ),
+                                            textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, color = Color.Black),
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
 
-                                    IconButton(onClick = { /* ação pesquisar */ }) {
+                                    IconButton(onClick = { 
+                                        if (partida.isNotBlank() && destino.isNotBlank()) {
+                                            navegacao?.navigate("linhas")
+                                        }
+                                    }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.lupa),
                                             contentDescription = "Pesquisar",
@@ -249,13 +256,12 @@ fun MobilizaHomeScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                         .weight(1f)
                 ) {
                     items(linhasRecentes) { linha ->
                         BusLineItemHome(linha, navegacao)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -287,137 +293,60 @@ fun BusLineItemHome(line: BusLineResponse, navegacao: NavHostController?) {
             .clickable {
                 navegacao?.navigate("linha-tracado/${line.routeId}/${line.routeShortName}")
             }
-            .padding(vertical = 12.dp, horizontal = 12.dp)
+            .padding(vertical = 8.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Ícone e número da linha
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(lineColor)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFFDDDDDD),
+                        shape = RoundedCornerShape(6.dp)
+                    )
+                    .background(Color.White)
+                    .drawBehind {
+                        drawRect(
+                            color = lineColor,
+                            topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 4.dp.toPx()),
+                            size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx())
+                        )
+                    }
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         painter = painterResource(id = R.drawable.onibus),
                         contentDescription = "Linha",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        tint = Color(0xFF363D38),
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = line.routeShortName,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontSize = 14.sp
+                        color = Color.Black
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Informações da linha
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = origem,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "$origem - $destino",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-        Divider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp),
-            color = Color(0xFFE0E0E0),
-            thickness = 1.dp
-        )
-    }
-}
-
-@Composable
-fun SearchFieldHome(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onSearchClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .height(50.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                .background(Color.White),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = {
-                    Text(
-                        text = "Pesquisar linhas...",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(horizontal = 12.dp),
-                singleLine = true,
+            Text(
+                text = "$origem - $destino",
+                fontSize = 14.sp,
+                color = Color.DarkGray,
+                modifier = Modifier.weight(1f),
                 maxLines = 1,
-                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = Color(0xFF16A34A)
-                )
+                overflow = TextOverflow.Ellipsis
             )
-            Box(
-                modifier = Modifier
-                    .width(42.dp)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
-                    .background(Color(0xFF16A34A))
-                    .clickable { onSearchClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun MobilizaHomeScreenPreview() {

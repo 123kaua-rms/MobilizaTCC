@@ -98,6 +98,7 @@ fun LinhaDetalhesScreen(
                     .padding(start = 35.dp, top = 18.dp)
                     .size(40.dp)
                     .clip(CircleShape)
+                    .clickable { navegacao?.navigate("perfil") }
             )
 
             // ---------- LINHA SUPERIOR ----------
