@@ -77,6 +77,10 @@ class MainActivity : ComponentActivity() {
                     // Chat
                     composable("chat") { ChatScreen(navegacao) }
 
+                    // Feedback
+                    composable("feedback") { FeedbacksScreen(navegacao) }
+                    composable("feedback-form") { FeedbackFormScreen(navegacao) }
+
                     // Linha Detalhes
                     composable(
                         route = "gradehoraria/{routeId}/{linhaCodigo}",

@@ -13,4 +13,8 @@ class RetrofitFactory {
     fun getUsuarioService(): UsuarioService {
         return retrofit.create(UsuarioService::class.java)
     }
+
+    fun getFeedbackService(): FeedbackService {
+        return retrofit.create(FeedbackService::class.java)
+    }
 }

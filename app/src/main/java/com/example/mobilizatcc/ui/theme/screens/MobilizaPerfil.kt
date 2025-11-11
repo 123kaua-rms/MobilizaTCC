@@ -96,42 +96,15 @@ fun PerfilScreen(navegacao: NavHostController?) {
                             fontSize = 14.sp
                         )
                         Text(
-                            text = userName,
+                            text = "@$userUsername",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF22343A)
                         )
                         Text(
-                            text = "@$userUsername",
-                            color = Color.Gray,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        if (userId != -1) {
-                            Text(
-                                text = "ID: $userId",
-                                color = Color.Gray,
-                                fontSize = 12.sp
-                            )
-                        }
-                        Text(
                             text = userEmail,
                             color = Color.Gray,
                             fontSize = 12.sp
-                        )
-                    }
-
-                    // Logout icon (vermelho)
-                    IconButton(onClick = {
-                        userSessionManager.clearSession()
-                        navegacao?.navigate("loguin") {
-                            popUpTo("home") { inclusive = true }
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ExitToApp,
-                            contentDescription = "Logout",
-                            tint = Color(0xFFDD2C2C)
                         )
                     }
                 }

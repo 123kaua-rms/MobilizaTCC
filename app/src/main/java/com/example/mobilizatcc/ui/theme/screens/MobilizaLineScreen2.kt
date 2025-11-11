@@ -95,7 +95,7 @@ fun LinhaTracadoScreen(
                         .padding(start = 17.dp, top = 11.dp)
                         .size(40.dp)
                         .clip(CircleShape)
-                        .clickable { navegacao.navigate("perfil") }
+                        .clickable { navegacao?.navigate("perfil") }
                 )
                 Spacer(modifier = Modifier.weight(1f))
             }
