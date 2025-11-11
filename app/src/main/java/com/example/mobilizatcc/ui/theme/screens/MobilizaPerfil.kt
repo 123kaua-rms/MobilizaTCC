@@ -1,3 +1,4 @@
+// kotlin
 package com.example.mobilizatcc.ui.theme.screens
 
 import android.content.Context
@@ -91,7 +92,6 @@ fun PerfilScreen(navegacao: NavHostController?) {
 
                     // Logout icon (vermelho)
                     IconButton(onClick = {
-                        // limpa prefs e volta pro login
                         prefs.edit().clear().apply()
                         navegacao?.navigate("loguin") {
                             popUpTo("home") { inclusive = true }
@@ -151,20 +151,35 @@ fun PerfilScreen(navegacao: NavHostController?) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomNavItem(icon = Icons.Filled.Home, label = "Início", selected = false) {
-                    navegacao?.navigate("home") {
-                        popUpTo("home") { inclusive = false }
+                BottomNavItemCustom(
+                    icon = Icons.Filled.Home,
+                    label = "Início",
+                    selected = false,
+                    onClick = {
+                        navegacao?.navigate("home") {
+                            popUpTo("home") { inclusive = false }
+                        }
                     }
-                }
-                BottomNavItem(icon = Icons.Filled.LocationOn, label = "Linhas", selected = false) {
-                    navegacao?.navigate("linhas")
-                }
-                BottomNavItem(icon = Icons.Filled.Person, label = "Feedback", selected = false) {
-                    navegacao?.navigate("feedback")
-                }
-                BottomNavItem(icon = Icons.Filled.Person, label = "Perfil", selected = true, tint = green) {
-                    // já está em perfil
-                }
+                )
+                BottomNavItemCustom(
+                    icon = Icons.Filled.LocationOn,
+                    label = "Linhas",
+                    selected = false,
+                    onClick = { navegacao?.navigate("linhas") }
+                )
+                BottomNavItemCustom(
+                    icon = Icons.Filled.Person,
+                    label = "Feedback",
+                    selected = false,
+                    onClick = { navegacao?.navigate("feedback") }
+                )
+                BottomNavItemCustom(
+                    icon = Icons.Filled.Person,
+                    label = "Perfil",
+                    selected = true,
+                    onClick = { /* já está em perfil */ },
+                    tint = green
+                )
             }
         }
     }
@@ -204,7 +219,7 @@ private fun ProfileRow(
 }
 
 @Composable
-private fun BottomNavItem(
+private fun BottomNavItemCustom(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     selected: Boolean,

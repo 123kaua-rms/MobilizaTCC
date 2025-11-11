@@ -16,3 +16,9 @@ data class UsuarioResponse(
     val email: String,
     val senha: String
 )
+
+
+data class Usuario(
+    val nome: String? = null,
+    val email: String? = null
+)
