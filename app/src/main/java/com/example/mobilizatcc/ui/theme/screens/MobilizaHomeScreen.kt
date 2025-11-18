@@ -287,68 +287,95 @@ fun BusLineItemHome(line: BusLineResponse, navegacao: NavHostController?) {
         Color(0xFF16A34A)
     }
 
+    // Determinar o ícone baseado no routeType
+    // 1 = Metrô, 2 = Trem, 3 = Ônibus
+    val transportIcon = when (line.routeType) {
+        1 -> R.drawable.onibus // Metrô (substitua pelo ícone correto se tiver)
+        2 -> R.drawable.onibus // Trem (substitua pelo ícone correto se tiver)
+        3 -> R.drawable.onibus // Ônibus
+        else -> R.drawable.onibus
+    }
+
+    // Determinar largura baseada no tipo (Metrô e Trem precisam de mais espaço)
+    val boxWidth = if (line.routeType == 1 || line.routeType == 2) 95.dp else 65.dp
+
+    // Fonte menor para metrô e trem
+    val fontSize = if (line.routeType == 1 || line.routeType == 2) 10.sp else 11.sp
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
                 navegacao?.navigate("linha-tracado/${line.routeId}/${line.routeShortName}")
             }
-            .padding(vertical = 8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
                 modifier = Modifier
+                    .width(boxWidth)
                     .clip(RoundedCornerShape(6.dp))
-                    .border(
-                        width = 1.dp,
-                        color = Color(0xFFDDDDDD),
-                        shape = RoundedCornerShape(6.dp)
-                    )
-                    .background(Color.White)
-                    .drawBehind {
-                        drawRect(
-                            color = lineColor,
-                            topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 4.dp.toPx()),
-                            size = androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx())
-                        )
-                    }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(6.dp))
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier
+                        .padding(vertical = 4.dp, horizontal = 3.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.onibus),
-                        contentDescription = "Linha",
-                        tint = Color(0xFF363D38),
-                        modifier = Modifier.size(18.dp)
+                        painter = painterResource(id = transportIcon),
+                        contentDescription = "Ícone de transporte",
+                        tint = Color.DarkGray,
+                        modifier = Modifier.size(13.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = line.routeShortName,
-                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        fontSize = fontSize,
+                        color = Color.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
                     )
                 }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .background(lineColor)
+                )
             }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Text(
-                text = "$origem - $destino",
-                fontSize = 14.sp,
-                color = Color.DarkGray,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                // Origem e destino na mesma linha em cinza
+                Text(
+                    text = "$origem - $destino",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp),
+            color = Color(0xFFE0E0E0),
+            thickness = 1.dp
+        )
     }
 }
-@Preview(showBackground = true)
-@Composable
-fun MobilizaHomeScreenPreview() {
-    MobilizaHomeScreen(null)
-}
+

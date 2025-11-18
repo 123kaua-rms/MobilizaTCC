@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navegacao,
-                    startDestination = "loguin"
+                    startDestination = "home"
                 ) {
                     // ... rotas existentes (mantidas)
 

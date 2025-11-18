@@ -6,18 +6,17 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Feedback
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,91 +60,118 @@ fun PerfilScreen(navegacao: NavHostController?) {
     val green = Color(0xFF16A34A)
     val lightGreenBg = Color(0xFFEFF8F1)
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Top area
-            Box(modifier = Modifier
+    Surface(modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState()), 
+        color = Color.White
+    ) {
+        Column(
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(top = 32.dp, bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Profile section with photo and text side by side
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Avatar circular with camera icon on the left
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(green),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Avatar circular with camera icon
-                    Box(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .clip(CircleShape)
-                            .background(green),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.CameraAlt,
-                            contentDescription = "Avatar",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Filled.CameraAlt,
+                        contentDescription = "Avatar",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(24.dp))
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Bem-vindo!",
-                            color = Color.Gray,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            text = "@$userUsername",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF22343A)
-                        )
-                        Text(
-                            text = userEmail,
-                            color = Color.Gray,
-                            fontSize = 12.sp
-                        )
-                    }
+                // User info on the right
+                Column {
+                    Text(
+                        text = "Bem-vindo!",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    Text(
+                        text = userName,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF22343A)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(2.dp))
+                    
+                    Text(
+                        text = "@$userUsername",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    
+                    Spacer(modifier = Modifier.height(2.dp))
+                    
+                    Text(
+                        text = userEmail,
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
                 }
             }
 
             // Card com opções
+            Spacer(modifier = Modifier.height(16.dp))
             Card(
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f, fill = false)
                     .background(Color.Transparent)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(lightGreenBg)
-                        .padding(vertical = 28.dp)
+                        .padding(vertical = 20.dp, horizontal = 16.dp)
                 ) {
                     ProfileRow(
-                        icon = { Icon(Icons.Outlined.Star, contentDescription = null, tint = green) },
-                        text = "Linhas favoritas",
-                        onClick = { navegacao?.navigate("linhas") }
-                    )
-                    ProfileRow(
-                        icon = { Icon(Icons.Filled.LocationOn, contentDescription = null, tint = green) },
-                        text = "Chat de suporte",
-                        onClick = { navegacao?.navigate("chat") }
-                    )
-                    ProfileRow(
-                        icon = { Icon(Icons.Filled.Security, contentDescription = null, tint = green) },
-                        text = "Segurança",
+                        icon = { Icon(Icons.Filled.Star, contentDescription = "Favoritos", tint = green) },
+                        text = "Favoritos",
                         onClick = { 
-                            // Funcionalidade futura - por enquanto não navega
+                            navegacao?.navigate("linhas") {
+                                // Limpa a pilha de navegação para evitar voltar para o perfil ao voltar
+                                popUpTo("perfil") { inclusive = true }
+                            }
                         }
                     )
                     ProfileRow(
-                        icon = { Icon(Icons.Filled.Settings, contentDescription = null, tint = green) },
+                        icon = { Icon(Icons.Filled.Settings, contentDescription = "Configurações", tint = green) },
                         text = "Configurações",
                         onClick = { 
-                            // Funcionalidade futura - por enquanto não navega
+                            // Navegar para tela de configurações
+                        }
+                    )
+                    ProfileRow(
+                        icon = { Icon(Icons.Filled.Feedback, contentDescription = "Feedbacks", tint = green) },
+                        text = "Feedbacks feitos",
+                        onClick = { 
+                            navegacao?.navigate("feedback") {
+                                // Limpa a pilha de navegação para evitar voltar para o perfil ao voltar
+                                popUpTo("perfil") { inclusive = true }
+                            }
                         }
                     )
                     ProfileRow(
@@ -162,6 +188,7 @@ fun PerfilScreen(navegacao: NavHostController?) {
             }
 
             // Bottom navigation padrão
+            Spacer(modifier = Modifier.height(16.dp))
             BottomNavigationBar(navegacao = navegacao, selectedRoute = "perfil")
         }
     }
