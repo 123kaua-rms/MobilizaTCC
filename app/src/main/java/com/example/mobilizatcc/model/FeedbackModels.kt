@@ -23,7 +23,19 @@ data class FeedbackResponse(
     @SerializedName("avaliacao")
     val avaliacao: Int,
     @SerializedName("conteudo")
-    val conteudo: String
+    val conteudo: String,
+    @SerializedName("nome_usuario")
+    val nome_usuario: String? = null,
+    @SerializedName("username")
+    val username: String? = null,
+    @SerializedName("route_short_name")
+    val route_short_name: String? = null,
+    @SerializedName("route_long_name")
+    val route_long_name: String? = null,
+    @SerializedName("foto_usuario")
+    val foto_usuario: String? = null,
+    @SerializedName("route_color")
+    val route_color: String? = null
 )
 
 data class FeedbackRequest(

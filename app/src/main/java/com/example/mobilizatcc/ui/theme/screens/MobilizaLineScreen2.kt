@@ -1,5 +1,6 @@
 package com.example.mobilizatcc.ui.theme.screens
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -19,12 +20,14 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.ui.theme.components.RouteBadge
 import com.example.mobilizatcc.utils.UserSessionManager
 
 @Composable
@@ -37,10 +40,10 @@ fun LinhaTracadoScreen(
     val context = LocalContext.current
     val userSessionManager = remember { UserSessionManager.getInstance(context) }
     
-    val greenColor = Color(0xFF16A34A)
+    val greenColor = Color(0xFF209C4E)
     val orangeColor = Color(0xFFF5A623)
     val blueColor = Color(0xFF1976D2)
-    val grayLine = Color(0xFFD6D6D6)
+    val grayLine = Color(0xFFDDDDDD)
 
     val paradas by viewModel.paradas.collectAsState()
     val estimativasPorStopId by viewModel.estimativasPorStopId.collectAsState()
@@ -80,99 +83,85 @@ fun LinhaTracadoScreen(
                 .padding(paddingValues)
         ) {
 
-            // 🔹 Barra superior com imagem do usuário
-            Row(
+            // 🔹 Barra superior com imagem do usuário / seta / badge / estrela
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .background(Color(0xFFF7F7F7))
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.perfilcinza),
-                    contentDescription = "Usuário",
+                Column(
                     modifier = Modifier
-                        .padding(start = 17.dp, top = 11.dp)
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable { navegacao?.navigate("perfil") }
-                )
-                Spacer(modifier = Modifier.weight(1f))
-            }
-
-            // 🔹 Linha com voltar / número do ônibus / favorito
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.seta),
-                    contentDescription = "Voltar",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable { navegacao?.popBackStack() }
-                )
-
-                Box(
-                    modifier = Modifier
-                        .background(Color.White, RoundedCornerShape(8.dp))
-                        .border(1.dp, grayLine, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 18.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.onibus),
-                            contentDescription = "Ônibus",
-                            tint = Color.Black,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = routeShortName,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-
-                IconButton(
-                    onClick = {
-                        if (!favoritoLoading && usuarioId != -1) {
-                            Log.d("LineScreen2", "Clicou na estrela: usuário $usuarioId, linha $routeId, isFavorito: $isFavorito")
-                            viewModel.toggleFavorito(usuarioId, routeId)
-                        } else if (usuarioId == -1) {
-                            Log.w("LineScreen2", "Usuário não logado, não é possível favoritar")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(horizontalAlignment = Alignment.Start) {
+                            Image(
+                                painter = painterResource(id = R.drawable.perfilcinza),
+                                contentDescription = "Usuário",
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .clickable { navegacao?.navigate("perfil") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Icon(
+                                painter = painterResource(id = R.drawable.seta),
+                                contentDescription = "Voltar",
+                                tint = Color.Black,
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clickable { navegacao?.popBackStack() }
+                            )
                         }
-                    },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    if (favoritoLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = greenColor,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        // Animação de cor da estrela
-                        val starColor by animateColorAsState(
-                            targetValue = if (isFavorito) greenColor else Color.Gray,
-                            animationSpec = tween(durationMillis = 300),
-                            label = "star_color"
-                        )
-                        
-                        Image(
-                            painter = painterResource(
-                                id = if (isFavorito) R.drawable.star_filled else R.drawable.estrela
-                            ),
-                            contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
-                            colorFilter = ColorFilter.tint(starColor),
-                            modifier = Modifier.size(30.dp)
-                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            RouteBadge(routeCode = routeShortName, maxWidth = 100.dp)
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        IconButton(
+                            onClick = {
+                                if (!favoritoLoading && usuarioId != -1) {
+                                    Log.d("LineScreen2", "Clicou na estrela: usuário $usuarioId, linha $routeId, isFavorito: $isFavorito")
+                                    viewModel.toggleFavorito(usuarioId, routeId)
+                                } else if (usuarioId == -1) {
+                                    Log.w("LineScreen2", "Usuário não logado, não é possível favoritar")
+                                }
+                            },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            if (favoritoLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = greenColor,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                val starColor by animateColorAsState(
+                                    targetValue = if (isFavorito) Color(0xFFFACC15) else Color(0xFFD4D4D4),
+                                    animationSpec = tween(durationMillis = 300),
+                                    label = "star_color"
+                                )
+
+                                Icon(
+                                    painter = painterResource(id = R.drawable.star_filled),
+                                    contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
+                                    tint = starColor,
+                                    modifier = Modifier.width(30.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -184,7 +173,7 @@ fun LinhaTracadoScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(color = greenColor)
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp, vertical = 22.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -195,23 +184,27 @@ fun LinhaTracadoScreen(
                             painter = painterResource(id = R.drawable.sentido),
                             contentDescription = "Sentido",
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = estacaoFinal,
                             color = Color.White,
-                            fontSize = 16.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = "Mudar sentido",
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 13.sp,
-                        modifier = Modifier.clickable { viewModel.mudarSentido() }
+                        color = Color(0xFFC5CAD3),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                            .clickable { viewModel.mudarSentido() }
                     )
                 }
             }
@@ -222,17 +215,21 @@ fun LinhaTracadoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = { navegacao.navigate("chat") },
+                    onClick = {
+                        val encodedShortName = Uri.encode(routeShortName)
+                        val encodedDescription = Uri.encode(estacaoFinal)
+                        navegacao.navigate("chat/$routeId/$encodedShortName/$encodedDescription")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .height(40.dp)
+                        .height(44.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -262,7 +259,7 @@ fun LinhaTracadoScreen(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     modifier = Modifier
                         .weight(0.6f)
-                        .height(40.dp)
+                        .height(44.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -285,13 +282,13 @@ fun LinhaTracadoScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // 🔹 Lista de paradas
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 28.dp)
             ) {
                 itemsIndexed(paradas) { index, parada ->
                     val stopId = parada.stopId ?: ""
@@ -321,7 +318,7 @@ fun LinhaTracadoScreen(
                                 Box(
                                     modifier = Modifier
                                         .width(2.dp)
-                                        .height(if (isSelecionada) 72.dp else 52.dp)
+                                        .height(if (isSelecionada) 80.dp else 58.dp)
                                         .background(
                                             color = if (isSelecionada) greenColor else grayLine
                                         )

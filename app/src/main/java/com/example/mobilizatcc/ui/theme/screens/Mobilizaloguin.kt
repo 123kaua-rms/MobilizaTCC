@@ -261,7 +261,7 @@ fun LoginScreen(
                                         
                                         Log.d("LoginScreen", "Login bem sucedido! Dados do usuário:")
                                         Log.d("LoginScreen", "- ID: ${usuario.id}")
-                                        Log.d("LoginScreen", "- Nome: ${usuario.nome ?: "null"}")
+                                        Log.d("LoginScreen", "- Nome: ${usuario.nomeUsuario ?: "null"}")
                                         Log.d("LoginScreen", "- Email: ${usuario.email ?: "null"}")
                                         Log.d("LoginScreen", "- Username: ${usuario.username ?: "null"}")
                                         Log.d("LoginScreen", "- Token: ${body.token ?: "null"}")
@@ -270,7 +270,7 @@ fun LoginScreen(
                                         try {
                                             userSessionManager.saveUserSession(
                                                 userId = usuario.id,
-                                                name = usuario.nome,
+                                                name = usuario.nomeUsuario,
                                                 email = usuario.email,
                                                 username = usuario.username,
                                                 token = body.token

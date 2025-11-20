@@ -291,8 +291,8 @@ fun RegisterScreen(
                             isLoading = true
                             val usuarioService = RetrofitFactory().getUsuarioService()
                             val usuarioRequest = UsuarioRequest(
-                                foto = "foto_legal.png",
-                                nome = nome.trim(),
+                                fotoUsuario = "foto_legal.png",
+                                nomeUsuario = nome.trim(),
                                 username = usuario,
                                 email = email,
                                 senha = senha

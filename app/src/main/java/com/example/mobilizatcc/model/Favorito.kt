@@ -23,10 +23,10 @@ data class Favorito(
 )
 
 data class FavoritoRequest(
-    @SerializedName("usuario_id")
+    @SerializedName("id_usuario")
     val usuarioId: Int,
 
-    @SerializedName("linha_id")
+    @SerializedName("route_id")
     val linhaId: String
 )
 

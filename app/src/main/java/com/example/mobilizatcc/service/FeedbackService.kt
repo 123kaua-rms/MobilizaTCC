@@ -6,15 +6,15 @@ import retrofit2.http.*
 interface FeedbackService {
 
     // Lista todos os feedbacks
-    @GET("feedbacks")
+    @GET("feedback")
     suspend fun getAllFeedbacks(): FeedbackListResponse
 
     // Busca feedbacks por linha específica
-    @GET("feedbacks/linha/{id_linha}")
+    @GET("feedback/linha/{id_linha}")
     suspend fun getFeedbacksByLinha(@Path("id_linha") idLinha: String): FeedbackListResponse
 
     // Adiciona um novo feedback
     @Headers("Content-Type: application/json")
-    @POST("feedbacks")
+    @POST("feedback")
     suspend fun adicionarFeedback(@Body feedback: FeedbackRequest): FeedbackActionResponse
 }

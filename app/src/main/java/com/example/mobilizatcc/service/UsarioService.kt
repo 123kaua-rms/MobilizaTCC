@@ -33,6 +33,13 @@ interface UsuarioService {
     @GET("linhas")
     suspend fun getAllLines(): LinesApiResponse
 
+    @GET("chat_linhas/all/{route_id}")
+    suspend fun getChatMessages(@Path("route_id") routeId: String): ChatMessagesResponse
+
+    @Headers("Content-Type: application/json")
+    @POST("chat_linhas")
+    suspend fun sendChatMessage(@Body body: ChatMessageRequest): ChatActionResponse
+
     @GET("sentidos/{trip_id}/ida")
     suspend fun getParadasIda(@Path("trip_id") tripId: String): SentidoResponse
 
@@ -74,9 +81,9 @@ interface UsuarioService {
         @Body favorito: FavoritoRequest
     ): FavoritoActionResponse
 
-    @DELETE("favoritos/usuario/{usuario_id}/linha/{linha_id}")
+    @DELETE("favoritos/{usuario_id}/{route_id}")
     suspend fun removerFavorito(
         @Path("usuario_id") usuarioId: Int,
-        @Path("linha_id") linhaId: String
+        @Path("route_id") linhaId: String
     ): FavoritoActionResponse
 }

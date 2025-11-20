@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navegacao,
-                    startDestination = "home"
+                    startDestination = "loguin"
                 ) {
                     // ... rotas existentes (mantidas)
 
@@ -74,8 +74,25 @@ class MainActivity : ComponentActivity() {
                         LinhaTracadoScreen(navegacao, routeId, routeShortName)
                     }
 
-                    // Chat
-                    composable("chat") { ChatScreen(navegacao) }
+                    // Chat por linha
+                    composable(
+                        route = "chat/{routeId}/{routeShortName}/{routeDescription}",
+                        arguments = listOf(
+                            navArgument("routeId") { type = NavType.StringType },
+                            navArgument("routeShortName") { type = NavType.StringType },
+                            navArgument("routeDescription") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val routeId = backStackEntry.arguments?.getString("routeId") ?: ""
+                        val routeShortName = backStackEntry.arguments?.getString("routeShortName") ?: ""
+                        val routeDescription = backStackEntry.arguments?.getString("routeDescription") ?: ""
+                        ChatScreen(
+                            navegacao = navegacao,
+                            routeId = routeId,
+                            routeShortName = routeShortName,
+                            routeDescription = routeDescription
+                        )
+                    }
 
                     // Feedback
                     composable("feedback") { FeedbacksScreen(navegacao) }
