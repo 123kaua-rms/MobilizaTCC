@@ -1,6 +1,5 @@
 package com.example.mobilizatcc.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilizatcc.model.Frequencia
@@ -63,9 +62,7 @@ class LinhaDetalhesViewModel : ViewModel() {
             try {
                 val response = service.getFavoritosByUsuario(usuarioId)
                 _isFavorito.value = response.favoritos.any { it.linhaId == linhaId }
-                Log.d("LinhaDetalhesVM", "Favorito verificado: ${_isFavorito.value}")
             } catch (e: Exception) {
-                Log.e("LinhaDetalhesVM", "Erro ao verificar favorito", e)
                 _isFavorito.value = false
             }
         }
@@ -81,7 +78,6 @@ class LinhaDetalhesViewModel : ViewModel() {
                     val response = service.removerFavorito(usuarioId, linhaId)
                     if (response.status) {
                         _isFavorito.value = false
-                        Log.d("LinhaDetalhesVM", "Favorito removido")
                     }
                 } else {
                     // Adicionar favorito
@@ -89,11 +85,9 @@ class LinhaDetalhesViewModel : ViewModel() {
                     val response = service.adicionarFavorito(request)
                     if (response.status) {
                         _isFavorito.value = true
-                        Log.d("LinhaDetalhesVM", "Favorito adicionado")
                     }
                 }
             } catch (e: Exception) {
-                Log.e("LinhaDetalhesVM", "Erro ao alterar favorito", e)
             } finally {
                 _favoritoLoading.value = false
             }

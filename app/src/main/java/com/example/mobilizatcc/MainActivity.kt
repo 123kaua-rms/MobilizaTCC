@@ -61,6 +61,19 @@ class MainActivity : ComponentActivity() {
                     // Linhas
                     composable("linhas") { LinesScreen(navegacao) }
 
+                    // Rotas inteligentes (lista de opções)
+                    composable(
+                        route = "rotas/{origem}/{destino}",
+                        arguments = listOf(
+                            navArgument("origem") { type = NavType.StringType },
+                            navArgument("destino") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val origem = backStackEntry.arguments?.getString("origem") ?: ""
+                        val destino = backStackEntry.arguments?.getString("destino") ?: ""
+                        RotasScreen(navegacao, origem, destino)
+                    }
+
                     // Linha Tracado
                     composable(
                         route = "linha-tracado/{routeId}/{routeShortName}",

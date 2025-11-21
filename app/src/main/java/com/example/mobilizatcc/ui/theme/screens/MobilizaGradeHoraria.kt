@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,8 +23,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mobilizatcc.R
+import com.example.mobilizatcc.ui.theme.components.RouteBadge
 import com.example.mobilizatcc.utils.UserSessionManager
 import com.example.mobilizatcc.viewmodel.LinhaDetalhesViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 
 @Composable
 fun LinhaDetalhesScreen(
@@ -40,7 +44,8 @@ fun LinhaDetalhesScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val isFavorito by viewModel.isFavorito.collectAsState()
     val favoritoLoading by viewModel.favoritoLoading.collectAsState()
-    val greenColor = Color(0xFF16A34A)
+    val userPhotoUrl = userSessionManager.getUserPhoto()
+    val greenColor = Color(0xFF209C4E)
     
     // Obter ID do usuário logado
     val usuarioId = userSessionManager.getUserId()
@@ -90,102 +95,91 @@ fun LinhaDetalhesScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // ---------- ÍCONE DE USUÁRIO ----------
-            Image(
-                painter = painterResource(id = R.drawable.perfilcinza),
-                contentDescription = "Usuário",
-                modifier = Modifier
-                    .padding(start = 35.dp, top = 18.dp)
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .clickable { navegacao?.navigate("perfil") }
-            )
-
             // ---------- LINHA SUPERIOR ----------
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 20.dp, vertical = 18.dp)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.seta),
-                    contentDescription = "Voltar",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable { navegacao?.popBackStack() }
-                )
-
-                Box(
-                    modifier = Modifier
-                        .background(Color.White, RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clickable { navegacao?.popBackStack() },
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.onibus),
-                            contentDescription = "Ônibus",
+                            painter = painterResource(id = R.drawable.seta),
+                            contentDescription = "Voltar",
                             tint = Color.Black,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = linhaCodigo,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black,
-                            fontSize = 14.sp
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                }
 
-                IconButton(
-                    onClick = {
-                        if (!favoritoLoading) {
-                            viewModel.toggleFavorito(usuarioId, routeId)
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        RouteBadge(routeCode = linhaCodigo, maxWidth = 110.dp)
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    IconButton(
+                        onClick = {
+                            if (!favoritoLoading) {
+                                viewModel.toggleFavorito(usuarioId, routeId)
+                            }
+                        },
+                        modifier = Modifier.size(42.dp)
+                    ) {
+                        if (favoritoLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                color = greenColor,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.star_filled),
+                                contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
+                                tint = if (isFavorito) Color(0xFFFACC15) else Color(0xFFD4D4D4),
+                                modifier = Modifier.size(28.dp)
+                            )
                         }
-                    },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    if (favoritoLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color.Gray,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(
-                                id = if (isFavorito) R.drawable.star_filled else R.drawable.estrela
-                            ),
-                            contentDescription = if (isFavorito) "Remover favorito" else "Adicionar favorito",
-                            modifier = Modifier.size(30.dp)
-                        )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // ---------- BLOCO VERDE ----------
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(greenColor)
-                    .padding(vertical = 16.dp, horizontal = 20.dp)
+                    .padding(horizontal = 24.dp, vertical = 22.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         painter = painterResource(id = R.drawable.sentido),
                         contentDescription = "Sentido",
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(24.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = estacaoFinal,
                         color = Color.White,
-                        fontSize = 16.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }

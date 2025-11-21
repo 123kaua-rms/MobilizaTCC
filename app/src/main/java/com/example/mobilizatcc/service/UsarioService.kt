@@ -29,9 +29,20 @@ interface UsuarioService {
     @POST("usuario/resetar-senha")
     fun resetarSenha(@Body body: ResetSenhaRequest): Call<Void>
 
+    @GET("usuario/{id}")
+    suspend fun getUsuarioById(@Path("id") id: Int): UsuarioResponse
+
 
     @GET("linhas")
     suspend fun getAllLines(): LinesApiResponse
+
+    // ========================= ROTAS INTELIGENTES =========================
+
+    @Headers("Content-Type: application/json")
+    @POST("rota_inteligente")
+    suspend fun getRotaInteligente(
+        @Body body: RotaInteligenteRequest
+    ): RotaInteligenteResponse
 
     @GET("chat_linhas/all/{route_id}")
     suspend fun getChatMessages(@Path("route_id") routeId: String): ChatMessagesResponse

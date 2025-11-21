@@ -13,6 +13,7 @@ class UserSessionManager(context: Context) {
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_USER_EMAIL = "user_email"
         private const val KEY_USER_USERNAME = "user_username"
+        private const val KEY_USER_PHOTO = "user_photo"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_TOKEN = "token"
         
@@ -34,6 +35,7 @@ class UserSessionManager(context: Context) {
         name: String?,
         email: String?,
         username: String?,
+        photoUrl: String? = null,
         token: String? = null
     ) {
         prefs.edit().apply {
@@ -41,6 +43,7 @@ class UserSessionManager(context: Context) {
             putString(KEY_USER_NAME, name ?: "Usuário")
             putString(KEY_USER_EMAIL, email ?: "email@exemplo.com")
             putString(KEY_USER_USERNAME, username ?: "user")
+            putString(KEY_USER_PHOTO, photoUrl)
             putString(KEY_TOKEN, token)
             putBoolean(KEY_IS_LOGGED_IN, true)
             apply()
@@ -73,6 +76,13 @@ class UserSessionManager(context: Context) {
      */
     fun getUserUsername(): String? {
         return prefs.getString(KEY_USER_USERNAME, null)
+    }
+    
+    /**
+     * Retorna a URL da foto do usuário logado
+     */
+    fun getUserPhoto(): String? {
+        return prefs.getString(KEY_USER_PHOTO, null)
     }
     
     /**

@@ -98,7 +98,7 @@ fun LinhaTracadoScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(horizontalAlignment = Alignment.Start) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Image(
                                 painter = painterResource(id = R.drawable.perfilcinza),
                                 contentDescription = "Usuário",
@@ -107,15 +107,21 @@ fun LinhaTracadoScreen(
                                     .clip(CircleShape)
                                     .clickable { navegacao?.navigate("perfil") }
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Icon(
-                                painter = painterResource(id = R.drawable.seta),
-                                contentDescription = "Voltar",
-                                tint = Color.Black,
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Box(
                                 modifier = Modifier
-                                    .size(20.dp)
-                                    .clickable { navegacao?.popBackStack() }
-                            )
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .clickable { navegacao?.popBackStack() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.seta),
+                                    contentDescription = "Voltar",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(16.dp))

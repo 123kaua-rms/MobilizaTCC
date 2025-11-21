@@ -1,23 +1,28 @@
 package com.example.mobilizatcc.ui.theme.screens
 
-import com.example.mobilizatcc.ui.theme.components.RouteBadge
 import android.graphics.Color as AndroidColor
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SentimentNeutral
-import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
-import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.PullRefreshState
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -32,13 +37,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,12 +52,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.FeedbackResponse
 import com.example.mobilizatcc.service.RetrofitFactory
+import com.example.mobilizatcc.ui.theme.components.RouteBadge
+import com.example.mobilizatcc.utils.UserSessionManager
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
 //Color Figma -> 0xFF16A34A
 //Color Alternative -> 0xFF26A65B
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FeedbacksScreen(
     navegacao: NavHostController?
@@ -62,8 +70,15 @@ fun FeedbacksScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val context = LocalContext.current
+    val userSessionManager = remember { UserSessionManager.getInstance(context) }
+    val currentUserId = remember { userSessionManager.getUserId() }
+
     val feedbackService = remember { RetrofitFactory().getFeedbackService() }
+    val usuarioService = remember { RetrofitFactory().getUsuarioService() }
     val coroutineScope = rememberCoroutineScope()
+    var usernamesCache by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     suspend fun requestFeedbacks(query: String? = null) {
         val normalizedQuery = query?.trim()?.takeIf { it.isNotEmpty() }
@@ -92,10 +107,68 @@ fun FeedbacksScreen(
         }
     }
 
-    // 🔹 Buscar todos os feedbacks ao abrir a tela
     LaunchedEffect(Unit) {
         requestFeedbacks()
     }
+
+    LaunchedEffect(feedbacks) {
+        var cacheSnapshot = usernamesCache
+
+        val providedUsernames = feedbacks
+            .mapNotNull { feedback ->
+                feedback.username?.takeIf { it.isNotBlank() }?.let { name ->
+                    feedback.id_usuario to name
+                }
+            }
+            .filter { (userId, name) -> cacheSnapshot[userId] != name }
+
+        if (providedUsernames.isNotEmpty()) {
+            cacheSnapshot = cacheSnapshot + providedUsernames
+            usernamesCache = cacheSnapshot
+        }
+
+        val missingUsers = feedbacks
+            .map { it.id_usuario }
+            .distinct()
+            .filter { !cacheSnapshot.containsKey(it) }
+
+        missingUsers.forEach { userId ->
+            launch {
+                runCatching {
+                    val response = usuarioService.getUsuarioById(userId)
+                    response.username?.takeIf { it.isNotBlank() }
+                }.onSuccess { apiUsername ->
+                    if (!apiUsername.isNullOrBlank()) {
+                        usernamesCache = usernamesCache + (userId to apiUsername)
+                    }
+                }.onFailure {
+                    Log.w("FeedbacksScreen", "Não foi possível buscar username do usuário $userId", it)
+                }
+            }
+        }
+
+        val missingInPayload = feedbacks.filter { it.username.isNullOrBlank() }
+        if (missingInPayload.isNotEmpty()) {
+            Log.w(
+                "FeedbacksScreen",
+                "Feedbacks sem username na payload: ${missingInPayload.joinToString { "(id=${it.id ?: "-"}, user=${it.id_usuario})" }}"
+            )
+        }
+    }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                try {
+                    requestFeedbacks(searchQuery)
+                } finally {
+                    isRefreshing = false
+                }
+            }
+        }
+    )
 
     Scaffold(
         floatingActionButton = {
@@ -117,6 +190,7 @@ fun FeedbacksScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(Color.White)
+                .pullRefresh(pullRefreshState)
         ) {
             Column(
                 modifier = Modifier
@@ -170,52 +244,78 @@ fun FeedbacksScreen(
                     else -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 96.dp)
                         ) {
                             items(feedbacks) { feedback ->
-                                FeedbackCardFromApi(feedback)
+                                val cachedUsername = usernamesCache[feedback.id_usuario]
+                                val payloadUsername = feedback.username?.takeIf { it.isNotBlank() }
+                                val nomeUsuario = feedback.nome_usuario?.takeIf { it.isNotBlank() }
+                                val effectiveUsername = cachedUsername ?: payloadUsername
+                                val composedDisplay = when {
+                                    nomeUsuario != null && !effectiveUsername.isNullOrBlank() ->
+                                        "$nomeUsuario (${effectiveUsername})"
+                                    !effectiveUsername.isNullOrBlank() -> effectiveUsername
+                                    nomeUsuario != null -> nomeUsuario
+                                    else -> "Usuário ${feedback.id_usuario}"
+                                }
+                                val displayUsername = if (currentUserId != -1 && feedback.id_usuario == currentUserId) {
+                                    "Você"
+                                } else {
+                                    composedDisplay
+                                }
+                                FeedbackCardFromApi(feedback, displayUsername)
                             }
                         }
                     }
                 }
             }
+
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                backgroundColor = Color.White,
+                contentColor = Color(0xFF16A34A)
+            )
         }
     }
 }
 
 @Composable
-fun FeedbackCardFromApi(feedback: FeedbackResponse) {
-    val username = feedback.nome_usuario?.takeIf { it.isNotBlank() }
-        ?: feedback.username?.takeIf { it.isNotBlank() }
-        ?: "Usuário ${feedback.id_usuario}"
+fun FeedbackCardFromApi(
+    feedback: FeedbackResponse,
+    username: String
+) {
+    val contentScrollState = rememberScrollState()
 
     val ratingUi = when (feedback.avaliacao) {
         1 -> FeedbackRatingUi(
             label = "Bom",
             backgroundColor = Color(0xFFDCFCE7),
-            contentColor = Color(0xFF16A34A),
-            icon = Icons.Filled.SentimentSatisfiedAlt
+            accentColor = Color(0xFF16A34A),
+            iconRes = R.drawable.emoji_feliz
         )
 
         2 -> FeedbackRatingUi(
             label = "Mediano",
             backgroundColor = Color(0xFFFEF9C3),
-            contentColor = Color(0xFFCA8A04),
-            icon = Icons.Filled.SentimentNeutral
+            accentColor = Color(0xFFCA8A04),
+            iconRes = R.drawable.emoji_neutro
         )
 
         3 -> FeedbackRatingUi(
             label = "Ruim",
             backgroundColor = Color(0xFFFEE2E2),
-            contentColor = Color(0xFFDC2626),
-            icon = Icons.Filled.SentimentVeryDissatisfied
+            accentColor = Color(0xFFDC2626),
+            iconRes = R.drawable.emoji_triste
         )
 
         else -> FeedbackRatingUi(
             label = "--",
             backgroundColor = Color(0xFFE2E8F0),
-            contentColor = Color(0xFF94A3B8),
-            icon = Icons.Filled.SentimentNeutral
+            accentColor = Color(0xFF94A3B8),
+            iconRes = R.drawable.emoji_neutro
         )
     }
 
@@ -271,12 +371,19 @@ fun FeedbackCardFromApi(feedback: FeedbackResponse) {
                     .padding(horizontal = 16.dp, vertical = 18.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = feedback.conteudo,
-                    color = Color(0xFF111827),
-                    fontSize = 14.sp,
-                    modifier = Modifier.weight(1f)
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp, max = 200.dp)
+                        .verticalScroll(contentScrollState)
+                ) {
+                    Text(
+                        text = feedback.conteudo,
+                        color = Color(0xFF111827),
+                        fontSize = 16.sp,
+                        lineHeight = 22.sp
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -288,28 +395,17 @@ fun FeedbackCardFromApi(feedback: FeedbackResponse) {
 
 @Composable
 private fun RatingBadge(ratingUi: FeedbackRatingUi) {
-    val borderColor = Color(0xFFD1D5DB)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(CircleShape)
-                .background(ratingUi.backgroundColor)
-                .border(2.dp, borderColor, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = ratingUi.icon,
-                contentDescription = ratingUi.label,
-                tint = ratingUi.contentColor,
-                modifier = Modifier.size(26.dp)
-            )
-        }
+        Image(
+            painter = painterResource(id = ratingUi.iconRes),
+            contentDescription = ratingUi.label,
+            modifier = Modifier.size(54.dp)
+        )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = ratingUi.label,
-            color = ratingUi.contentColor,
-            fontSize = 12.sp,
+            color = ratingUi.accentColor,
+            fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold
         )
     }
@@ -319,8 +415,8 @@ private fun RatingBadge(ratingUi: FeedbackRatingUi) {
 private data class FeedbackRatingUi(
     val label: String,
     val backgroundColor: Color,
-    val contentColor: Color,
-    val icon: ImageVector
+    val accentColor: Color,
+    @DrawableRes val iconRes: Int
 )
 
 @Composable

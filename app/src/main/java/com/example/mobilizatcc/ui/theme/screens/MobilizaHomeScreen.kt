@@ -198,7 +198,9 @@ fun MobilizaHomeScreen(
 
                                     IconButton(onClick = { 
                                         if (partida.isNotBlank() && destino.isNotBlank()) {
-                                            navegacao?.navigate("linhas")
+                                            val encodedOrigem = java.net.URLEncoder.encode(partida, Charsets.UTF_8.name())
+                                            val encodedDestino = java.net.URLEncoder.encode(destino, Charsets.UTF_8.name())
+                                            navegacao?.navigate("rotas/$encodedOrigem/$encodedDestino")
                                         }
                                     }) {
                                         Icon(

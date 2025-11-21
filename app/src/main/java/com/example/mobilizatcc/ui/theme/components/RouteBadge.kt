@@ -40,8 +40,8 @@ fun RouteBadge(
         modifier = modifier
             .defaultMinSize(minWidth = 68.dp)
             .widthIn(max = maxWidth)
-            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
-            .background(Color.White, RoundedCornerShape(10.dp))
+            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(8.dp))
+            .background(Color.White, RoundedCornerShape(8.dp))
     ) {
         Row(
             modifier = Modifier
@@ -68,7 +68,7 @@ fun RouteBadge(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(4.dp)
-                .background(accentColor, RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp))
+                .background(accentColor, RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
         )
     }
 }

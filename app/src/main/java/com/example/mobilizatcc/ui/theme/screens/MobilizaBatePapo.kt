@@ -287,7 +287,12 @@ private fun ChatHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navegacao?.popBackStack() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.Black)
+                Icon(
+                    painter = painterResource(id = R.drawable.seta),
+                    contentDescription = "Voltar",
+                    tint = Color(0xFF606C63),
+                    modifier = Modifier.size(20.dp)
+                )
             }
 
             Spacer(modifier = Modifier.width(8.dp))

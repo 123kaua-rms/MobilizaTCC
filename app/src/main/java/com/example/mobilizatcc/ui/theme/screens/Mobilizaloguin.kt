@@ -273,6 +273,7 @@ fun LoginScreen(
                                                 name = usuario.nomeUsuario,
                                                 email = usuario.email,
                                                 username = usuario.username,
+                                                photoUrl = usuario.fotoUsuario,
                                                 token = body.token
                                             )
                                             

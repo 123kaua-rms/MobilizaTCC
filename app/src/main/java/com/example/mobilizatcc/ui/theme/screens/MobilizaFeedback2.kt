@@ -2,6 +2,8 @@
 package com.example.mobilizatcc.ui.theme.screens
 
 import android.util.Log
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,9 +16,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SentimentNeutral
-import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
-import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -59,6 +58,7 @@ import com.example.mobilizatcc.R
 import com.example.mobilizatcc.model.BusLineResponse
 import com.example.mobilizatcc.model.FeedbackRequest
 import com.example.mobilizatcc.service.RetrofitFactory
+import com.example.mobilizatcc.ui.theme.components.RouteBadge
 import com.example.mobilizatcc.utils.UserSessionManager
 import kotlinx.coroutines.launch
 
@@ -88,9 +88,27 @@ fun FeedbackFormScreen(
     val usuarioId = userSessionManager.getUserId()
     
     val emojiOptions = listOf(
-        EmojiOption(1, "Bom", Icons.Filled.SentimentSatisfiedAlt, Color(0xFF16A34A)),
-        EmojiOption(2, "Mediano", Icons.Filled.SentimentNeutral, Color(0xFFCA8A04)),
-        EmojiOption(3, "Ruim", Icons.Filled.SentimentVeryDissatisfied, Color(0xFFDC2626))
+        EmojiOption(
+            value = 1,
+            label = "Bom",
+            activeIconRes = R.drawable.emoji_feliz,
+            inactiveIconRes = R.drawable.emoji_feliz_silhouette,
+            accentColor = Color(0xFF16A34A)
+        ),
+        EmojiOption(
+            value = 2,
+            label = "Mediano",
+            activeIconRes = R.drawable.emoji_neutro,
+            inactiveIconRes = R.drawable.emoji_neutro_silhouette,
+            accentColor = Color(0xFFCA8A04)
+        ),
+        EmojiOption(
+            value = 3,
+            label = "Ruim",
+            activeIconRes = R.drawable.emoji_triste,
+            inactiveIconRes = R.drawable.emoji_triste_silhouette,
+            accentColor = Color(0xFFDC2626)
+        )
     )
 
     val filteredLinhas by remember(linhas, linhaText) {
@@ -239,15 +257,22 @@ fun FeedbackFormScreen(
                                 filteredLinhas.forEach { linha ->
                                     DropdownMenuItem(
                                         text = {
-                                            Column {
-                                                Text(
-                                                    text = linha.routeShortName,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    fontSize = 14.sp
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                RouteBadge(
+                                                    routeCode = linha.routeShortName,
+                                                    routeColorHex = linha.routeColor,
+                                                    maxWidth = 120.dp
                                                 )
-                                                linha.routeLongName?.let {
-                                                    Text(text = it, fontSize = 12.sp, color = Color.Gray)
-                                                }
+                                                Spacer(modifier = Modifier.width(12.dp))
+                                                Text(
+                                                    text = linha.routeLongName ?: "",
+                                                    fontSize = 13.sp,
+                                                    color = Color.DarkGray,
+                                                    maxLines = 2
+                                                )
                                             }
                                         },
                                         onClick = {
@@ -490,7 +515,7 @@ fun FeedbackFormHeader(
             painter = painterResource(id = R.drawable.perfilcinza),
             contentDescription = "Avatar",
             modifier = Modifier
-                .size(44.dp)
+                .size(36.dp)
                 .clip(CircleShape)
                 .clickable { navegacao?.navigate("perfil") }
         )
@@ -503,33 +528,27 @@ private fun EmojiSelectorOption(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val baseGray = Color(0xFFD1D5DB)
-    val backgroundColor = if (isSelected) option.color.copy(alpha = 0.2f) else Color(0xFFF1F1F1)
-    val borderColor = if (isSelected) option.color else baseGray
-    val iconTint = if (isSelected) option.color else Color(0xFF6B7280)
+    val labelColor = if (isSelected) option.accentColor else Color(0xFF475569)
+    val iconRes = if (isSelected) option.activeIconRes else option.inactiveIconRes
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(backgroundColor)
-                .border(2.dp, borderColor, CircleShape)
+                .size(68.dp)
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = option.icon,
+            Image(
+                painter = painterResource(id = iconRes),
                 contentDescription = option.label,
-                tint = iconTint,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.fillMaxSize(0.8f)
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = option.label,
             fontSize = 12.sp,
-            color = Color(0xFF4B5563),
+            color = labelColor,
             textAlign = TextAlign.Center
         )
     }
@@ -538,8 +557,9 @@ private fun EmojiSelectorOption(
 private data class EmojiOption(
     val value: Int,
     val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val color: Color
+    @DrawableRes val activeIconRes: Int,
+    @DrawableRes val inactiveIconRes: Int,
+    val accentColor: Color
 )
 
 @Preview(showBackground = true)
